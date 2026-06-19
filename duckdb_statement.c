@@ -134,6 +134,11 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 			ZVAL_DOUBLE(result, val);
 			break;
 		}
+		case DUCKDB_TYPE_HUGEINT: {
+			duckdb_hugeint val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_DOUBLE(result, duckdb_hugeint_to_double(val));
+			break;
+		}
 		case DUCKDB_TYPE_VARCHAR: {
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
@@ -142,6 +147,47 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 		case DUCKDB_TYPE_BLOB: {
 			duckdb_string_t blob = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_STRINGL(result, duckdb_string_t_data(&blob), duckdb_string_t_length(blob));
+			break;
+		}
+		case DUCKDB_TYPE_DECIMAL: {
+			duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
+			uint8_t width = duckdb_decimal_width(logical_type);
+			uint8_t scale = duckdb_decimal_scale(logical_type);
+			duckdb_type internal_type = duckdb_decimal_internal_type(logical_type);
+			duckdb_destroy_logical_type(&logical_type);
+
+			duckdb_hugeint hugeint_val;
+			switch (internal_type) {
+				case DUCKDB_TYPE_SMALLINT: {
+					int16_t val = ((int16_t *)duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t)(int64_t)val;
+					hugeint_val.upper = val < 0 ? -1 : 0;
+					break;
+				}
+				case DUCKDB_TYPE_INTEGER: {
+					int32_t val = ((int32_t *)duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t)(int64_t)val;
+					hugeint_val.upper = val < 0 ? -1 : 0;
+					break;
+				}
+				case DUCKDB_TYPE_BIGINT: {
+					int64_t val = ((int64_t *)duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t)val;
+					hugeint_val.upper = val < 0 ? -1 : 0;
+					break;
+				}
+				default: {
+					hugeint_val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
+					break;
+				}
+			}
+
+			duckdb_decimal dec_val;
+			dec_val.width = width;
+			dec_val.scale = scale;
+			dec_val.value = hugeint_val;
+
+			ZVAL_DOUBLE(result, duckdb_decimal_to_double(dec_val));
 			break;
 		}
 		case DUCKDB_TYPE_DATE: {
