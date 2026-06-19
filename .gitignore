@@ -1,0 +1,17 @@
+.libs/
+build/
+modules/
+autom4te.cache/
+*.dep
+*.lo
+*.la
+*.a
+*.hpp
+*.zip
+config.*
+Makefile*
+configure*
+libtool
+duckdb.h
+libduckdb.so
+run-tests.php
