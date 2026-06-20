@@ -92,99 +92,21 @@ static double wkb_r64(const uint8_t **p, int le) {
     return vu.d;
 }
 
-/* Read WKB geometry header: returns type, sets le (byte order) */
-static int wkb_read_header(const uint8_t **p, int *le) {
-    *le = ((*p)[0] == 1);
+static void wkt_write_coords(const uint8_t **p, wkt_buf *b, int le, int has_z, int has_m) {
+    wkt_buf_printf(b, "%.15g %.15g", wkb_r64(p, le), wkb_r64(p, le));
+    if (has_z) wkt_buf_printf(b, " %.15g", wkb_r64(p, le));
+    if (has_m) wkt_buf_printf(b, " %.15g", wkb_r64(p, le));
+}
+
+static void wkb_to_wkt_recursive(const uint8_t **p, wkt_buf *b, int emit_name) {
+    int le = ((*p)[0] == 1);
     (*p)++;
-    return (int)wkb_r32(p, *le);
-}
+    uint32_t raw_type = wkb_r32(p, le);
+    int type = (int)(raw_type % 1000);
+    int dim_flag = (int)(raw_type / 1000);
+    int has_z = (dim_flag == 1 || dim_flag == 3);
+    int has_m = (dim_flag == 2 || dim_flag == 3);
 
-/* Parse bare coordinates for a known geometry type (no type keyword emitted) */
-static void wkb_parse_bare(const uint8_t **p, wkt_buf *b, int type, int le);
-
-/* Parse a full sub-geometry (with its own WKB header) and emit bare coords */
-static void wkb_parse_sub_bare(const uint8_t **p, wkt_buf *b) {
-    int le, type = wkb_read_header(p, &le);
-    wkb_parse_bare(p, b, type, le);
-}
-
-/* Parse bare coordinates: point coords, linestring coords, etc. */
-static void wkb_parse_point_coords(const uint8_t **p, wkt_buf *b, int le) {
-    double x = wkb_r64(p, le), y = wkb_r64(p, le);
-    wkt_buf_printf(b, "%.15g %.15g", x, y);
-}
-
-static void wkb_parse_line_coords(const uint8_t **p, wkt_buf *b, int le) {
-    uint32_t n = wkb_r32(p, le);
-    for (uint32_t i = 0; i < n; i++) {
-        if (i) wkt_buf_append(b, ", ", 2);
-        wkb_parse_point_coords(p, b, le);
-    }
-}
-
-static void wkb_parse_poly_coords(const uint8_t **p, wkt_buf *b, int le) {
-    uint32_t n = wkb_r32(p, le);
-    for (uint32_t i = 0; i < n; i++) {
-        if (i) wkt_buf_append(b, ", ", 2);
-        wkt_buf_append(b, "(", 1);
-        wkb_parse_line_coords(p, b, le);
-        wkt_buf_append(b, ")", 1);
-    }
-}
-
-/* Initialize bare coords of a collection sub-geometry: each sub-geom is a
-   full WKB geometry.  MultiPoint strips all outer punctuation, while
-   MultiLineString / MultiPolygon wrap each element in (...). */
-static void wkb_parse_multi_bare(const uint8_t **p, wkt_buf *b, int type, int le) {
-    uint32_t n = wkb_r32(p, le);
-    int wrap = (type != WKB_MULTIPOINT);
-    for (uint32_t i = 0; i < n; i++) {
-        if (i) wkt_buf_append(b, ", ", 2);
-        if (wrap) wkt_buf_append(b, "(", 1);
-        wkb_parse_sub_bare(p, b);
-        if (wrap) wkt_buf_append(b, ")", 1);
-    }
-}
-
-/* Dispatcher: output bare coordinates for a given WKB geometry type */
-static void wkb_parse_bare(const uint8_t **p, wkt_buf *b, int type, int le) {
-    switch (type) {
-        case WKB_POINT:            wkb_parse_point_coords(p, b, le); break;
-        case WKB_LINESTRING:       wkb_parse_line_coords(p, b, le); break;
-        case WKB_POLYGON:          wkb_parse_poly_coords(p, b, le); break;
-        case WKB_MULTIPOINT:
-        case WKB_MULTILINESTRING:
-        case WKB_MULTIPOLYGON:     wkb_parse_multi_bare(p, b, type, le); break;
-        case WKB_GEOMETRYCOLLECTION: {
-            uint32_t n = wkb_r32(p, le);
-            for (uint32_t i = 0; i < n; i++) {
-                if (i) wkt_buf_append(b, ", ", 2);
-                int sub_le, sub_type = wkb_read_header(p, &sub_le);
-                static const char *names[] = {
-                    [WKB_POINT] = "POINT",
-                    [WKB_LINESTRING] = "LINESTRING",
-                    [WKB_POLYGON] = "POLYGON",
-                    [WKB_MULTIPOINT] = "MULTIPOINT",
-                    [WKB_MULTILINESTRING] = "MULTILINESTRING",
-                    [WKB_MULTIPOLYGON] = "MULTIPOLYGON",
-                    [WKB_GEOMETRYCOLLECTION] = "GEOMETRYCOLLECTION"
-                };
-                const char *name = (sub_type >= 1 && sub_type <= 7) ? names[sub_type] : "UNKNOWN";
-                wkt_buf_printf(b, "%s (", name);
-                wkb_parse_bare(p, b, sub_type, sub_le);
-                wkt_buf_append(b, ")", 1);
-            }
-            break;
-        }
-        default:
-            wkt_buf_append(b, "UNKNOWN", 7);
-            break;
-    }
-}
-
-/* Output full WKT for a top-level geometry */
-static void wkb_parse_full(const uint8_t **p, wkt_buf *b) {
-    int le, type = wkb_read_header(p, &le);
     static const char *names[] = {
         [WKB_POINT] = "POINT",
         [WKB_LINESTRING] = "LINESTRING",
@@ -195,16 +117,77 @@ static void wkb_parse_full(const uint8_t **p, wkt_buf *b) {
         [WKB_GEOMETRYCOLLECTION] = "GEOMETRYCOLLECTION"
     };
     const char *name = (type >= 1 && type <= 7) ? names[type] : "UNKNOWN";
-    wkt_buf_printf(b, "%s (", name);
-    wkb_parse_bare(p, b, type, le);
-    wkt_buf_append(b, ")", 1);
+
+    if (emit_name) {
+        wkt_buf_printf(b, "%s (", name);
+    }
+
+    switch (type) {
+        case WKB_POINT:
+            wkt_write_coords(p, b, le, has_z, has_m);
+            break;
+
+        case WKB_LINESTRING: {
+            uint32_t n = wkb_r32(p, le);
+            for (uint32_t i = 0; i < n; i++) {
+                if (i) wkt_buf_append(b, ", ", 2);
+                wkt_write_coords(p, b, le, has_z, has_m);
+            }
+            break;
+        }
+
+        case WKB_POLYGON: {
+            uint32_t n = wkb_r32(p, le);
+            for (uint32_t i = 0; i < n; i++) {
+                if (i) wkt_buf_append(b, ", ", 2);
+                wkt_buf_append(b, "(", 1);
+                uint32_t m = wkb_r32(p, le);
+                for (uint32_t j = 0; j < m; j++) {
+                    if (j) wkt_buf_append(b, ", ", 2);
+                    wkt_write_coords(p, b, le, has_z, has_m);
+                }
+                wkt_buf_append(b, ")", 1);
+            }
+            break;
+        }
+
+        case WKB_MULTIPOINT:
+        case WKB_MULTILINESTRING:
+        case WKB_MULTIPOLYGON: {
+            uint32_t n = wkb_r32(p, le);
+            for (uint32_t i = 0; i < n; i++) {
+                if (i) wkt_buf_append(b, ", ", 2);
+                if (type != WKB_MULTIPOINT) wkt_buf_append(b, "(", 1);
+                wkb_to_wkt_recursive(p, b, 0);
+                if (type != WKB_MULTIPOINT) wkt_buf_append(b, ")", 1);
+            }
+            break;
+        }
+
+        case WKB_GEOMETRYCOLLECTION: {
+            uint32_t n = wkb_r32(p, le);
+            for (uint32_t i = 0; i < n; i++) {
+                if (i) wkt_buf_append(b, ", ", 2);
+                wkb_to_wkt_recursive(p, b, 1);
+            }
+            break;
+        }
+
+        default:
+            wkt_buf_append(b, "UNKNOWN", 7);
+            break;
+    }
+
+    if (emit_name) {
+        wkt_buf_append(b, ")", 1);
+    }
 }
 
 static char *wkb_to_wkt(const char *data, size_t len) {
     if (len < 5) return NULL;
     const uint8_t *p = (const uint8_t *)data, *end = p + len;
     wkt_buf b; wkt_buf_init(&b);
-    wkb_parse_full(&p, &b);
+    wkb_to_wkt_recursive(&p, &b, 1);
     if (p > end) { wkt_buf_free(&b); return NULL; }
     return b.str;
 }
