@@ -25,6 +25,7 @@
 #include "ext/standard/info.h"
 #include "pdo/php_pdo.h"
 #include "pdo/php_pdo_driver.h"
+#include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb_int.h"
 #include <math.h>
 
@@ -67,7 +68,8 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	duckdb_state state = duckdb_execute_prepared(S->stmt, &S->result);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&S->result);
-		strncpy(H->error_msg, err ? err : "execute error", sizeof(H->error_msg) - 1);
+		zend_throw_exception_ex(php_pdo_get_exception(), 0,
+			"SQLSTATE[HY000]: %s", err ? err : "execute error");
 		return 0;
 	}
 
@@ -314,6 +316,20 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			duckdb_destroy_logical_type(&child_type);
 			break;
 		}
+		case DUCKDB_TYPE_UUID: {
+			duckdb_hugeint val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
+			uint64_t upper = (uint64_t)val.upper;
+			uint64_t lower = val.lower;
+			char buf[37];
+			snprintf(buf, sizeof(buf), "%08x-%04x-%04x-%04x-%012lx",
+			         (unsigned)(upper >> 32),
+			         (unsigned)((upper >> 16) & 0xFFFF),
+			         (unsigned)(upper & 0xFFFF),
+			         (unsigned)(lower >> 48),
+			         (unsigned long)(lower & 0xFFFFFFFFFFFFULL));
+			ZVAL_STRING(result, buf);
+			break;
+		}
 		default: {
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
@@ -415,6 +431,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_STRUCT: type_str = "struct"; break;
 		case DUCKDB_TYPE_MAP: type_str = "map"; break;
 		case DUCKDB_TYPE_UNION: type_str = "union"; break;
+		case DUCKDB_TYPE_UUID: type_str = "uuid"; break;
 		default: type_str = "unknown";
 	}
 
