@@ -260,13 +260,17 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		}
 		case DUCKDB_TYPE_TIME_NS: {
 			duckdb_time_ns time_ns_val = ((duckdb_time_ns *)duckdb_vector_get_data(vec))[row_idx];
-			duckdb_time time_us;
-			time_us.micros = time_ns_val.nanos / 1000;
-			duckdb_time_struct ts = duckdb_from_time(time_us);
+			int64_t remaining = time_ns_val.nanos;
+			int hour = (int)(remaining / 3600000000000LL);
+			remaining %= 3600000000000LL;
+			int min = (int)(remaining / 60000000000LL);
+			remaining %= 60000000000LL;
+			int sec = (int)(remaining / 1000000000LL);
+			int nanos = (int)(remaining % 1000000000LL);
 			char buf[32];
-			int len = snprintf(buf, sizeof(buf), "%02d:%02d:%02d", ts.hour, ts.min, ts.sec);
-			if (ts.micros) {
-				len += snprintf(buf + len, sizeof(buf) - len, ".%06d", ts.micros);
+			int len = snprintf(buf, sizeof(buf), "%02d:%02d:%02d", hour, min, sec);
+			if (nanos) {
+				len += snprintf(buf + len, sizeof(buf) - len, ".%09d", nanos);
 			}
 			ZVAL_STRING(result, buf);
 			break;
