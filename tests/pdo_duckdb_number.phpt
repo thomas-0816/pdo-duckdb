@@ -15,6 +15,15 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("select 0.9::float, pi(), 9223372036854775808, -9223372036854775809");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT 1.5, .50, 2.");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 1e2, 6.02214e23, 1e-10");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 100_000_000, '0xFF_FF'::INTEGER, 1_2.1_2E0_1, '0b0_1_0_1'::INTEGER");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -50,5 +59,40 @@ array(1) {
     string(19) "9223372036854775808"
     ["-9223372036854775809"]=>
     string(20) "-9223372036854775809"
+  }
+}
+array(1) {
+  [0]=>
+  array(3) {
+    ["1.5"]=>
+    float(1.5)
+    [".50"]=>
+    float(0.5)
+    [2]=>
+    float(2)
+  }
+}
+array(1) {
+  [0]=>
+  array(3) {
+    ["100.0"]=>
+    float(100)
+    ["6.02214e+23"]=>
+    float(6.02214E+23)
+    ["1e-10"]=>
+    float(1.0E-10)
+  }
+}
+array(1) {
+  [0]=>
+  array(4) {
+    [100000000]=>
+    int(100000000)
+    ["CAST('0xFF_FF' AS INTEGER)"]=>
+    int(65535)
+    ["121.2"]=>
+    float(121.2)
+    ["CAST('0b0_1_0_1' AS INTEGER)"]=>
+    int(5)
   }
 }
