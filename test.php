@@ -104,3 +104,19 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT {'outer1': {'inner1': 42, 'inner2': 42}} AS c
     UNION SELECT {'outer1': {'inner2': 'hello', 'inner3': 'world'}, 'outer2': '100'} AS c;");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("CREATE TABLE txn_test (id INTEGER, val VARCHAR)");
+$db->beginTransaction();
+$stmt = $db->prepare("INSERT INTO txn_test VALUES (?, ?)");
+$stmt->execute([1, 'committed']);
+$db->commit();
+$stmt = $db->query("SELECT * FROM txn_test");
+echo "After commit:\n";
+print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
+
+$db->beginTransaction();
+$stmt->execute([2, 'rolled_back']);
+$db->rollback();
+$stmt = $db->query("SELECT * FROM txn_test");
+echo "After rollback:\n";
+print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
