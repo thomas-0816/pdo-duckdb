@@ -8,34 +8,6 @@ The build process bundles libduckdb directly into `pdo_duckdb.so`.
 
 All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstrings, Blobs and Boolean.
 
-### Setup
-
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
-    cd pdo_duckdb
-
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
-    unzip -o libduckdb-linux-amd64.zip -d ./
-
-    phpize
-    ./configure --with-pdo-duckdb
-    make -j$(nproc)
-    NO_INTERACTION=1 make test
-
-    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-
-    sudo make install
-    sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini'
-    sudo phpenmod pdo_duckdb
-
-    php -m | grep duckdb
-    php test.php
-
-### Docker
-
-    docker build -t pdo_duckdb .
-    docker run --rm -it pdo_duckdb php test.php
-
 ### Usage examples
 
     $duckDb = new PDO('duckdb::memory:');$duckDb = new PDO('duckdb::memory:');
@@ -136,6 +108,34 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
 
     )
 
+
+### Setup
+
+    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+    cd pdo_duckdb
+
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
+    unzip -o libduckdb-linux-amd64.zip -d ./
+
+    phpize
+    ./configure --with-pdo-duckdb
+    make -j$(nproc)
+    NO_INTERACTION=1 make test
+
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+
+    sudo make install
+    sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini'
+    sudo phpenmod pdo_duckdb
+
+    php -m | grep duckdb
+    php test.php
+
+### Docker
+
+    docker build -t pdo_duckdb .
+    docker run --rm -it pdo_duckdb php test.php
 
 ### Why DuckDB?
 
