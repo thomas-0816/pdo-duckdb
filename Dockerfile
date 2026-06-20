@@ -31,6 +31,7 @@ RUN <<EOF
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     make install
+    NO_INTERACTION=1 make test
     echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini
     phpenmod pdo_duckdb
     php -m | grep duckdb
