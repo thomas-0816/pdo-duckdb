@@ -572,6 +572,27 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			}
 			break;
 		}
+		case DUCKDB_TYPE_BIT: {
+			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+			const char *str_data = duckdb_string_t_data(&str);
+			size_t str_len = duckdb_string_t_length(str);
+			if (str_len == 0) {
+				ZVAL_STRING(result, "");
+				break;
+			}
+			uint8_t padding = (uint8_t)str_data[0];
+			size_t bit_count = (str_len - 1) * 8 - padding;
+			char *buf = emalloc(bit_count + 1);
+			for (size_t i = 0; i < bit_count; i++) {
+				size_t byte_idx = 1 + i / 8;
+				size_t bit_offset = 7 - padding - (i % 8);
+				buf[i] = ((str_data[byte_idx] >> bit_offset) & 1) ? '1' : '0';
+			}
+			buf[bit_count] = '\0';
+			ZVAL_STRING(result, buf);
+			efree(buf);
+			break;
+		}
 		default: {
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
@@ -712,6 +733,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_UUID: type_str = "uuid"; break;
 		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; break;
 		case DUCKDB_TYPE_VARIANT: type_str = "json"; break;
+		case DUCKDB_TYPE_BIT: type_str = "bit"; break;
 		default: type_str = "unknown";
 	}
 
@@ -723,6 +745,34 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	add_assoc_long(return_value, "pdo_type", PDO_PARAM_STR);
 
 	return SUCCESS;
+}
+
+/* Convert a PHP string (e.g. "101010") to a duckdb_bit struct for binding.
+   The returned duckdb_bit.data must be freed with duckdb_free() when no longer needed. */
+static duckdb_bit php_str_to_duckdb_bit(const char *str, size_t len)
+{
+	duckdb_bit bit;
+	bit.size = len;
+	uint8_t padding = (8 - (len % 8)) % 8;
+	size_t byte_count = (len + 7) / 8;
+	bit.data = duckdb_malloc(1 + byte_count);
+	if (!bit.data) {
+		bit.size = 0;
+		return bit;
+	}
+	bit.data[0] = padding;
+	memset(bit.data + 1, 0, byte_count);
+	for (size_t i = 0; i < len; i++) {
+		if (str[i] == '1') {
+			size_t byte_idx = 1 + i / 8;
+			size_t bit_offset = 7 - (i % 8);
+			bit.data[byte_idx] |= (1 << bit_offset);
+		}
+	}
+	if (padding > 0) {
+		bit.data[byte_count] |= (0xFF << (8 - padding)) & 0xFF;
+	}
+	return bit;
 }
 
 /* ---------------- parameter hook (binding before execution) ---------------- */
@@ -747,9 +797,18 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 				state = duckdb_bind_int32(S->stmt, idx, (int32_t)zval_get_long(&param->parameter));
 				break;
 			case PDO_PARAM_STR: {
-				zend_string *str = zval_get_string(&param->parameter);
-				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
-				zend_string_release(str);
+				zend_string *zstr = zval_get_string(&param->parameter);
+				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
+				if (state != DuckDBSuccess) {
+					duckdb_bit bit = php_str_to_duckdb_bit(ZSTR_VAL(zstr), ZSTR_LEN(zstr));
+					if (bit.data) {
+						duckdb_value val = duckdb_create_bit(bit);
+						state = duckdb_bind_value(S->stmt, idx, val);
+						duckdb_destroy_value(&val);
+						duckdb_free(bit.data);
+					}
+				}
+				zend_string_release(zstr);
 				break;
 			}
 			case PDO_PARAM_LOB: {
