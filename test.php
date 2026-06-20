@@ -72,7 +72,7 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $db->exec("CREATE TABLE x (i INTEGER, v FLOAT[3])");
 $db->exec("CREATE TABLE y (i INTEGER, v FLOAT[3])");
 $db->exec("INSERT INTO x VALUES (1, array_value(1.0::FLOAT, 2.0::FLOAT, 3.0::FLOAT))");
-$db->exec("INSERT INTO y VALUES (1, array_value(2.1::FLOAT, 3.2::FLOAT, 4.3::FLOAT))"); // TODO fix?
+$db->exec("INSERT INTO y VALUES (1, array_value(2.1::FLOAT, 3.2::FLOAT, 4.3::FLOAT))");
 
 $statement = $db->query("SELECT * FROM x");
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -89,7 +89,7 @@ try {
 $statement = $db->query("SELECT CAST(42.5 AS VARCHAR), CAST(3.1 AS INTEGER)");
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT CAST(0.9 AS FLOAT), CAST(3.1 AS FLOAT), CAST([1, 2, 3] AS VARCHAR[])"); // TODO fix?
+$statement = $db->query("SELECT CAST(0.9 AS FLOAT), CAST(3.1 AS FLOAT), CAST([1, 2, 3] AS VARCHAR[])");
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT CAST({'a': 42} AS STRUCT(a VARCHAR)), CAST({'a': 42} AS STRUCT(a VARCHAR, b VARCHAR))");
@@ -107,16 +107,32 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE txn_test (id INTEGER, val VARCHAR)");
 $db->beginTransaction();
-$stmt = $db->prepare("INSERT INTO txn_test VALUES (?, ?)");
-$stmt->execute([1, 'committed']);
+$statement = $db->prepare("INSERT INTO txn_test VALUES (?, ?)");
+$statement->execute([1, 'committed']);
 $db->commit();
-$stmt = $db->query("SELECT * FROM txn_test");
+$statement = $db->query("SELECT * FROM txn_test");
 echo "After commit:\n";
-print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
-
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $db->beginTransaction();
-$stmt->execute([2, 'rolled_back']);
+$statement->execute([2, 'rolled_back']);
 $db->rollback();
-$stmt = $db->query("SELECT * FROM txn_test");
+$statement = $db->query("SELECT * FROM txn_test");
 echo "After rollback:\n";
-print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("CREATE TABLE unicode_test (id INTEGER, latin VARCHAR, mb4 VARCHAR)");
+$statement = $db->prepare("INSERT INTO unicode_test VALUES (?, ?, ?)");
+$statement->execute([1, 'äöüßÄÖÜ', 'emoji 🐘 test']);
+$statement = $db->query("SELECT * FROM unicode_test");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 'Straße' AS german, 'München' AS city, 'café' AS french, '🐘🐋🦀' AS emoji");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->prepare("INSERT INTO unicode_test VALUES (?, ?, ?)");
+$statement->execute([2, 'café résumé', 'four-byte: 🐘🐋🦀🌍']);
+$statement = $db->query("SELECT * FROM unicode_test ORDER BY id");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("select 0.9::float, pi(), 9223372036854775808, -9223372036854775809");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));

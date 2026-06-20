@@ -130,7 +130,9 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			} else if (isinf(val)) {
 				ZVAL_STRING(result, val > 0 ? "INF" : "-INF");
 			} else {
-				ZVAL_DOUBLE(result, (double)val);
+				char buf[32];
+				snprintf(buf, sizeof(buf), "%.7g", (double)val);
+				ZVAL_DOUBLE(result, zend_strtod(buf, NULL));
 			}
 			break;
 		}
