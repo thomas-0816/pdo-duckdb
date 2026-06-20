@@ -93,6 +93,43 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	return 1;
 }
 
+/* Convert a zval to a string representation for use as a MAP key.
+   Arrays are serialized by joining their elements with ", ". */
+static zend_string *zval_to_map_key(zval *zv)
+{
+	if (Z_TYPE_P(zv) != IS_ARRAY) {
+		return zval_get_string(zv);
+	}
+
+	zend_string *result = NULL;
+	zval *val;
+
+	ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(zv), val) {
+		zend_string *part = Z_TYPE_P(val) == IS_ARRAY
+			? zval_to_map_key(val)
+			: zval_get_string(val);
+
+		if (result == NULL) {
+			result = part;
+		} else {
+			zend_string *prev = result;
+			result = zend_string_concat3(
+				ZSTR_VAL(prev), ZSTR_LEN(prev),
+				", ", 2,
+				ZSTR_VAL(part), ZSTR_LEN(part)
+			);
+			zend_string_release(prev);
+			zend_string_release(part);
+		}
+	} ZEND_HASH_FOREACH_END();
+
+	if (result == NULL) {
+		result = zend_string_init("", 0, 0);
+	}
+
+	return result;
+}
+
 /* Recursively convert a value from a DuckDB vector to a PHP zval.
    The logical_type is used to determine the type and to access child types
    for nested/complex types (struct, list, map). */
@@ -428,7 +465,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				duckdb_val_from_vector(key_vec, key_type, i, &key_val);
 				duckdb_val_from_vector(val_vec, val_type, i, &val_val);
 
-				zend_string *key_str = zval_get_string(&key_val);
+				zend_string *key_str = zval_to_map_key(&key_val);
 				add_assoc_zval(result, ZSTR_VAL(key_str), &val_val);
 				zend_string_release(key_str);
 				zval_ptr_dtor(&key_val);

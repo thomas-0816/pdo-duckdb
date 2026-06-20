@@ -293,10 +293,8 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT MAP {1: 42.001, 5: -32.1}");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT MAP {['a', 'b']: [1.1, 2.2], ['c', 'd']: [3.3, 4.4]}"); // TODO fix
+$statement = $db->query("SELECT MAP {['a', 'b', 'c']: [1.1, 2.2, null], ['c', 'd', null]: [3.3, 4.4, 5.5]}");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-
-exit;
 
 $statement = $db->query("SELECT MAP {'key1': 5, 'key2': 43}['key1']");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
