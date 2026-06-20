@@ -8,7 +8,6 @@
     wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
     unzip libduckdb-linux-amd64.zip -d ./
 
-    sudo cp libduckdb.so /lib/
     phpize
     ./configure --with-pdo-duckdb
     make
