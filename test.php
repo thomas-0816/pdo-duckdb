@@ -345,5 +345,30 @@ $statement = $db->query('SELECT $tag$ this string can contain newlines,
 and $$dollar quotes$$ $tag$ AS msg');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query('SELECT [1, 2, 3]');
+$statement = $db->query("SELECT [1, 2, 3]");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT ['duck', 'goose', NULL, 'heron']");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT [['duck', 'goose', 'heron'], NULL, ['frog', 'toad'], []]");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT list_value(1, 2, 3)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT ['a', 'b', 'c'][1:2]");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT list_slice(['a', 'b', 'c'], 2, 3)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT
+    INTERVAL 1 YEAR, -- single unit using YEAR keyword; stored as 12 months
+    INTERVAL (random() * 10) YEAR, -- parentheses necessary for variable amounts;
+                                   -- stored as integer number of months
+    INTERVAL '1 month 1 day', -- string type necessary for multiple units; stored as (1 month, 1 day)
+    '16 months'::INTERVAL, -- string cast supported; stored as 16 months
+    '48:00:00'::INTERVAL, -- HH::MM::SS string supported; stored as (48 * 60 * 60 * 1e6 microseconds)
+");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
