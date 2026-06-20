@@ -36,8 +36,6 @@ RUN <<EOF
     phpenmod pdo_duckdb
     php -m | grep duckdb
     php test.php
-    php -m | grep duckdb
-    php test.php
 EOF
 
 WORKDIR /pdo-duckdb
