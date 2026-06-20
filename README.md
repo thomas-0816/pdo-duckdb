@@ -42,19 +42,19 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
     )
 
 
-    $duckDb = new PDO('duckdb:/tmp/pdo_duckdb_test.db');
-    $duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
+    $db = new PDO('duckdb:/tmp/test.db');
+    $db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
-    $statement = $duckDb->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
+    $statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
     $statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
 
-    $statement = $duckDb->exec("
+    $statement = $db->exec("
         COPY (SELECT * FROM table2)
-        TO '/tmp/pdo_duckdb_test_table2.parquet'
+        TO '/tmp/test_table2.parquet'
         (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100_000)
     ");
 
-    foreach ($duckDb->query("SELECT * FROM '/tmp/pdo_duckdb_test_table2.parquet'", PDO::FETCH_ASSOC) as $row) {
+    foreach ($db->query("SELECT * FROM '/tmp/test_table2.parquet'", PDO::FETCH_ASSOC) as $row) {
         print_r($row);
     }
 
