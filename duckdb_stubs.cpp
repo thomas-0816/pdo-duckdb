@@ -4,5 +4,5 @@ class DuckDB;
 
 } // namespace duckdb
 
-extern "C" void _ZN6duckdb15ExtensionHelper17LoadAllExtensionsERNS_6DuckDBE(duckdb::DuckDB &) {
+extern "C" void _ZTVN10__cxxabiv120__si_class_type_infoE(duckdb::DuckDB &) {
 }
