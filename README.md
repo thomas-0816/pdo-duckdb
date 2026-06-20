@@ -11,7 +11,7 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
 ### Usage examples
 
     $duckDb = new PDO('duckdb::memory:');$duckDb = new PDO('duckdb::memory:');
-    $duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR USING COMPRESSION zstd)");
+    $duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR)");
 
     $statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
     $statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
@@ -43,7 +43,7 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
 
 
     $duckDb = new PDO('duckdb:/tmp/pdo_duckdb_test.db');
-    $duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR, data JSON)");
+    $duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
     $statement = $duckDb->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
     $statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
