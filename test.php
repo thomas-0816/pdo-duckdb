@@ -277,3 +277,70 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query('SELECT \'2023-05-12\'::DATE::JSON');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT NULL = NULL");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT MAP {'key1': 10, 'key2': 20, 'key3': 30}");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT map_from_entries([('key1', 10), ('key2', 20), ('key3', 30)])");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT MAP(['key1', 'key2', 'key3'], [10, 20, 30])");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT MAP {1: 42.001, 5: -32.1}");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT MAP {['a', 'b']: [1.1, 2.2], ['c', 'd']: [3.3, 4.4]}"); // TODO fix
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT MAP {'key1': 5, 'key2': 43}['key1']");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT MAP {'key1': 5, 'key2': 43}['key3']");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT map_extract(MAP {'key1': 5, 'key2': 43}, 'key1')");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 1.5, .50, 2.");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 1e2, 6.02214e23, 1e-10");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 100_000_000, '0xFF_FF'::INTEGER, 1_2.1_2E0_1, '0b0_1_0_1'::INTEGER");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 'Hello'
+    ' '
+    'World' AS greeting");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 'Hello' || ' ' || 'World' AS greeting");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+try {
+    $statement = $db->query("SELECT 'Hello' ' ' 'World' AS greeting");
+    var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$statement = $db->query('SELECT e\'Hello\nworld\' AS msg');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT $$Hello
+world$$ AS msg');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT $$The price is $9.95$$ AS msg');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT $tag$ this string can contain newlines,
+\'single quotes\',
+"double quotes",
+and $$dollar quotes$$ $tag$ AS msg');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
