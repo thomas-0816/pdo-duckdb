@@ -178,5 +178,8 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
 
 ### AI Disclosure
 
-    Yes for the C code
-    (the tests are not written by AI)
+The C code is written by AI, the tests are written without AI.
+
+### License
+
+MIT License
