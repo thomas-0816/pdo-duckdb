@@ -344,3 +344,6 @@ $statement = $db->query('SELECT $tag$ this string can contain newlines,
 "double quotes",
 and $$dollar quotes$$ $tag$ AS msg');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT [1, 2, 3]');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
