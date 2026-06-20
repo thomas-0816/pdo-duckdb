@@ -49,16 +49,13 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT null, true, false, NULL::BOOLEAN, DATE '1992-09-20'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT uuidv4(), uuidv7(), CAST(3.1 AS INTEGER)");
+$statement = $db->query("SELECT uuidv4(), uuidv7()");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
+$statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive"); // TODO fix?
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 0/0, 0//0"); // TODO fix 0/0, inf, nan, -inf
-var_export($statement->fetchAll(PDO::FETCH_ASSOC));
-
-$statement = $db->query("SELECT 0/0, 0//0");
+$statement = $db->query("SELECT 0/0, 0//0"); // TODO fix?
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE array_table (id INTEGER, arr INTEGER[3])");
@@ -82,6 +79,28 @@ var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT * FROM y");
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT CAST(999 AS TINYINT)");
-var_export($statement);
-// var_export($statement->fetchAll(PDO::FETCH_ASSOC));
+try {
+    $statement = $db->query("SELECT CAST(999 AS TINYINT)");
+    var_export($statement);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$statement = $db->query("SELECT CAST(42.5 AS VARCHAR), CAST(3.1 AS INTEGER)");
+var_export($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT CAST(0.9 AS FLOAT), CAST(3.1 AS FLOAT), CAST([1, 2, 3] AS VARCHAR[])"); // TODO fix?
+var_export($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT CAST({'a': 42} AS STRUCT(a VARCHAR)), CAST({'a': 42} AS STRUCT(a VARCHAR, b VARCHAR))");
+var_export($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT CAST({'a': 42, 'b': 43} AS STRUCT(a VARCHAR)), CAST({'a': 42, 'b': 84} AS STRUCT(b VARCHAR, a VARCHAR))");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT [{'a': 42}, {'b': 84}]");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT {'outer1': {'inner1': 42, 'inner2': 42}} AS c
+    UNION SELECT {'outer1': {'inner2': 'hello', 'inner3': 'world'}, 'outer2': '100'} AS c;");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
