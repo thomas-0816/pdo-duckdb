@@ -634,4 +634,13 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
+$statement->bindValue(1, null);
+$statement->bindValue(2, 203);
+try {
+    $statement->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 unset($db);
