@@ -16,13 +16,16 @@ $stmt->execute([1, 'hello']);
 $stmt = $db->query("SELECT * FROM t");
 while ($row = $stmt->fetch()) { var_dump($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { var_dump($row); }
-unset($db);
 
 try {
     $duckDb = new PDO('duckdb:/tmp/invalid/test.db');
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
+
+$db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+$statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
+var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
 
 ?>
 --EXPECTF--
@@ -46,4 +49,12 @@ array(4) {
   [1]=>
   string(5) "hello"
 }
-Caught: SQLSTATE[HY000]: Could not open DuckDB database: %a
+Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
+array(3) {
+  [0]=>
+  string(9) "read_only"
+  [1]=>
+  string(7) "3.7 GiB"
+  [2]=>
+  string(1) "1"
+}

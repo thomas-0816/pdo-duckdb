@@ -689,4 +689,8 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 }
 echo $count . PHP_EOL;
 
+$db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+$statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
+print_r($statement->fetchAll(PDO::FETCH_COLUMN));
+
 unset($db);
