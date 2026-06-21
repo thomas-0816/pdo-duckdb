@@ -45,7 +45,6 @@ $stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)");
 $stmt->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18446744073709551614', '170141183460469231731687303715884105726', '340282366920938463463374607431768211455']);
 $stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $stmt->fetch()) { print_r($row); }
-exit;
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
