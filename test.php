@@ -694,7 +694,7 @@ $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('acc
 print_r($statement->fetchAll(PDO::FETCH_COLUMN));
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query("SELECT '1\01'");
+$statement = $db->query("SELECT 'a\0a'");
 var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
 $db->exec("CREATE TABLE t (v VARCHAR)");
 $statement = $db->prepare("INSERT INTO t VALUES (?)");

@@ -16,18 +16,17 @@ extern struct pdo_stmt_methods duckdb_stmt_methods;
 /* ---------------- null-byte stripping helper ---------------- */
 static char* zstr_val_without_nul(zend_string *str)
 {
-	char *p = ZSTR_VAL(str);
+	char *src = ZSTR_VAL(str);
 	size_t len = ZSTR_LEN(str);
+	char *dst = estrndup(src, len);
 	size_t j = 0;
-
 	for (size_t i = 0; i < len; i++) {
-		if (p[i] != '\0') {
-			p[j++] = p[i];
+		if (src[i] != '\0') {
+			dst[j++] = src[i];
 		}
 	}
-	p[j] = '\0';
-	ZSTR_LEN(str) = j;
-	return p;
+	dst[j] = '\0';
+	return dst;
 }
 
 /* ---------------- error handling helper ---------------- */
@@ -142,7 +141,9 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	S->chunk_idx = 0;
 	S->chunk_size = 0;
 
-	duckdb_state state = duckdb_prepare(H->conn, zstr_val_without_nul(sql), &S->stmt);
+	char *s = zstr_val_without_nul(sql);
+	duckdb_state state = duckdb_prepare(H->conn, s, &S->stmt);
+	efree(s);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_prepare_error(S->stmt);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
@@ -162,7 +163,9 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result result;
-	duckdb_state state = duckdb_query(H->conn, zstr_val_without_nul((zend_string *)sql), &result);
+	char *s = zstr_val_without_nul((zend_string *)sql);
+	duckdb_state state = duckdb_query(H->conn, s, &result);
+	efree(s);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&result);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
