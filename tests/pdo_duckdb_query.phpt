@@ -122,8 +122,9 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 echo $count . PHP_EOL;
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query("SELECT '1\01'");
-var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+$statement = $db->query("SELECT 1\0 as a, 'te\0st' as b");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 $db->exec("CREATE TABLE t (v VARCHAR)");
 $statement = $db->prepare("INSERT INTO t VALUES (?)");
 $statement->execute(["he\0llo"]);
@@ -344,6 +345,11 @@ bool(true)
 20000
 array(1) {
   [0]=>
-  string(2) "1"
+  array(2) {
+    ["a"]=>
+    int(1)
+    ["b"]=>
+    string(4) "test"
+  }
 }
 ["he\u0000llo","he\u0000llo","he\u0000llo","he\u0000llo"]
