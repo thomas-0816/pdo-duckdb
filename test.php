@@ -601,7 +601,7 @@ try {
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
 $statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
-$statement->bindValue('aa', 100, PDO::PARAM_INT);
+$statement->bindValue('aa', null, PDO::PARAM_NULL);
 $statement->bindValue('bb', 200, PDO::PARAM_INT);
 $statement->bindValue('cc', 300, PDO::PARAM_INT);
 $statement->bindValue('dd', 42.21, PDO::PARAM_STR);
