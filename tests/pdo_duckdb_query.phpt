@@ -52,6 +52,12 @@ var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
 $statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
+$statement->execute([':bb' => 2, ':aa' => 1, ':cc' => 9223372036854775807, ':ee' => 'hello', ':dd' => 3.141511313212312312]);
+var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
 try {
     $statement->execute(['bb' => 2, 'aa' => 1]);
 } catch (Exception $e) {
@@ -80,6 +86,13 @@ $statement->bindValue('bb', 203);
 $statement->bindValue('cc', 300);
 $statement->bindValue('dd', 42.21);
 $statement->bindValue('ee', 'test');
+$statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
+$statement->bindValue(':aa', null);
+$statement->bindValue(':bb', 204);
+$statement->bindValue(':cc', 300);
+$statement->bindValue(':dd', 42.21);
+$statement->bindValue(':ee', 'test');
 $statement->execute();
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
@@ -290,8 +303,23 @@ array(1) {
     string(5) "hello"
   }
 }
+array(1) {
+  [0]=>
+  array(5) {
+    ["n"]=>
+    int(1)
+    ["i"]=>
+    int(2)
+    ["b"]=>
+    int(9223372036854775807)
+    ["d"]=>
+    float(3.14)
+    ["v"]=>
+    string(5) "hello"
+  }
+}
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
-array(3) {
+array(4) {
   [0]=>
   array(5) {
     ["n"]=>
@@ -324,6 +352,19 @@ array(3) {
     NULL
     ["i"]=>
     int(203)
+    ["b"]=>
+    int(300)
+    ["d"]=>
+    float(42.21)
+    ["v"]=>
+    string(4) "test"
+  }
+  [3]=>
+  array(5) {
+    ["n"]=>
+    NULL
+    ["i"]=>
+    int(204)
     ["b"]=>
     int(300)
     ["d"]=>
