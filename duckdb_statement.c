@@ -954,60 +954,86 @@ static int duckdb_stmt_describe_col(pdo_stmt_t *stmt, int colno)
 	return 1;
 }
 
-/* ---------------- get column meta (optional) ---------------- */
+/* ---------------- get column meta ---------------- */
 static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *return_value)
 {
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 	duckdb_result *res = &S->result;
+
+	if (!S->result_set) {
+		return FAILURE;
+	}
 	if (colno < 0 || colno >= stmt->column_count) {
 		return FAILURE;
 	}
 
 	array_init(return_value);
 
-	duckdb_type type = duckdb_column_type(res, colno);
+	zval flags;
+	array_init(&flags);
+
+	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
+	duckdb_type type = duckdb_get_type_id(logical_type);
 	const char *type_str = NULL;
+	enum pdo_param_type pdo_type = PDO_PARAM_STR;
+
 	switch (type) {
-		case DUCKDB_TYPE_BOOLEAN: type_str = "boolean"; break;
-		case DUCKDB_TYPE_TINYINT: type_str = "tinyint"; break;
-		case DUCKDB_TYPE_SMALLINT: type_str = "smallint"; break;
-		case DUCKDB_TYPE_INTEGER: type_str = "integer"; break;
-		case DUCKDB_TYPE_BIGINT: type_str = "bigint"; break;
-		case DUCKDB_TYPE_HUGEINT: type_str = "hugeint"; break;
-		case DUCKDB_TYPE_FLOAT: type_str = "float"; break;
-		case DUCKDB_TYPE_DOUBLE: type_str = "double"; break;
-		case DUCKDB_TYPE_VARCHAR: type_str = "varchar"; break;
-		case DUCKDB_TYPE_BLOB: type_str = "blob"; break;
-		case DUCKDB_TYPE_DATE: type_str = "date"; break;
-		case DUCKDB_TYPE_TIME: type_str = "time"; break;
-		case DUCKDB_TYPE_TIME_TZ: type_str = "timetz"; break;
-		case DUCKDB_TYPE_TIME_NS: type_str = "time_ns"; break;
-		case DUCKDB_TYPE_TIMESTAMP: type_str = "timestamp"; break;
-		case DUCKDB_TYPE_TIMESTAMP_S: type_str = "timestamp_s"; break;
-		case DUCKDB_TYPE_TIMESTAMP_MS: type_str = "timestamp_ms"; break;
-		case DUCKDB_TYPE_TIMESTAMP_NS: type_str = "timestamp_ns"; break;
-		case DUCKDB_TYPE_TIMESTAMP_TZ: type_str = "timestamptz"; break;
-		case DUCKDB_TYPE_DECIMAL: type_str = "decimal"; break;
-		case DUCKDB_TYPE_LIST: type_str = "list"; break;
-		case DUCKDB_TYPE_STRUCT: type_str = "struct"; break;
-		case DUCKDB_TYPE_MAP: type_str = "map"; break;
-		case DUCKDB_TYPE_ENUM: type_str = "enum"; break;
-		case DUCKDB_TYPE_UNION: type_str = "union"; break;
-		case DUCKDB_TYPE_UUID: type_str = "uuid"; break;
-		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; break;
-		case DUCKDB_TYPE_VARIANT: type_str = "json"; break;
-		case DUCKDB_TYPE_BIT: type_str = "bit"; break;
-		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; break;
-		default: type_str = "unknown";
+		case DUCKDB_TYPE_BOOLEAN: type_str = "boolean"; pdo_type = PDO_PARAM_BOOL; break;
+		case DUCKDB_TYPE_TINYINT: type_str = "tinyint"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_SMALLINT: type_str = "smallint"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_INTEGER: type_str = "integer"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_BIGINT: type_str = "bigint"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_UTINYINT: type_str = "utinyint"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_USMALLINT: type_str = "usmallint"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_UINTEGER: type_str = "uinteger"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_UBIGINT: type_str = "ubigint"; pdo_type = PDO_PARAM_INT; break;
+		case DUCKDB_TYPE_HUGEINT: type_str = "hugeint"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_UHUGEINT: type_str = "uhugeint"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_FLOAT: type_str = "float"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_DOUBLE: type_str = "double"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_DECIMAL: type_str = "decimal"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_BLOB: type_str = "blob"; pdo_type = PDO_PARAM_LOB; break;
+		case DUCKDB_TYPE_DATE: type_str = "date"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIME: type_str = "time"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIME_TZ: type_str = "timetz"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIME_NS: type_str = "time_ns"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIMESTAMP: type_str = "timestamp"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIMESTAMP_S: type_str = "timestamp_s"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIMESTAMP_MS: type_str = "timestamp_ms"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIMESTAMP_NS: type_str = "timestamp_ns"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIMESTAMP_TZ: type_str = "timestamptz"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_LIST: type_str = "list"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_STRUCT: type_str = "struct"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_MAP: type_str = "map"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_ENUM: type_str = "enum"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_UNION: type_str = "union"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_UUID: type_str = "uuid"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_VARIANT: type_str = "json"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_BIT: type_str = "bit"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; pdo_type = PDO_PARAM_STR; break;
+		default: type_str = "unknown"; pdo_type = PDO_PARAM_STR; break;
+	}
+
+	/* Check for JSON alias on VARCHAR (DuckDB may report JSON as VARCHAR with "JSON" alias) */
+	if (type == DUCKDB_TYPE_VARCHAR) {
+		char *alias = duckdb_logical_type_get_alias(logical_type);
+		if (alias && strcmp(alias, "JSON") == 0) {
+			type_str = "json";
+			duckdb_free(alias);
+		} else {
+			type_str = "varchar";
+			duckdb_free(alias);
+		}
+		pdo_type = PDO_PARAM_STR;
 	}
 
 	add_assoc_string(return_value, "native_type", (char *)type_str);
-	add_assoc_string(return_value, "driver:decl_type", (char *)type_str);
-	add_assoc_string(return_value, "name", (char *)duckdb_column_name(res, colno));
-	add_assoc_long(return_value, "len", 0);
-	add_assoc_long(return_value, "precision", 0);
-	add_assoc_long(return_value, "pdo_type", PDO_PARAM_STR);
+	add_assoc_long(return_value, "pdo_type", pdo_type);
+	add_assoc_string(return_value, "duckdb:decl_type", (char *)type_str);
+	add_assoc_zval(return_value, "flags", &flags);
 
+	duckdb_destroy_logical_type(&logical_type);
 	return SUCCESS;
 }
 

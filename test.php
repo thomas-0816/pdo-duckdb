@@ -561,15 +561,10 @@ $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
 $stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
 $stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query('SELECT * FROM t');
-var_dump($statement->getColumnMeta(0)); // TODO fix segfault
+var_dump($statement->getColumnMeta(0));
 var_dump($statement->getColumnMeta(1));
 var_dump($statement->getColumnMeta(2));
 var_dump($statement->getColumnMeta(3));
 var_dump($statement->getColumnMeta(4));
-
-
-// TODO nullable columns
-// TODO pdo column meta
-
 
 unset($db);

@@ -63,6 +63,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 
 	/* Assign db handle methods */
 	dbh->methods = &duckdb_methods;
+	dbh->alloc_own_columns = 1;
 
 	/* Process driver options (if any) */
 	if (driver_options) {
