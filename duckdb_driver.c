@@ -13,15 +13,33 @@
 /* Forward declaration of statement methods (defined in duckdb_statement.c) */
 extern struct pdo_stmt_methods duckdb_stmt_methods;
 
-/* ---------------- null-byte stripping helper ---------------- */
-static char* zstr_val_without_nul(zend_string *str)
+/* Strip null bytes and replace :name with $name for DuckDB compatibility.
+   DuckDB uses $style named parameters, not :style. */
+static char* zstr_prepare(zend_string *str)
 {
-	char *src = ZSTR_VAL(str);
+	const char *src = ZSTR_VAL(str);
 	size_t len = ZSTR_LEN(str);
-	char *dst = estrndup(src, len);
+	char *dst = emalloc(len + 1);
 	size_t j = 0;
+	int in_sq = 0;
+	int in_dq = 0;
+
 	for (size_t i = 0; i < len; i++) {
-		if (src[i] != '\0') {
+		if (src[i] == '\0') {
+			continue;
+		}
+		if (src[i] == '\'' && !in_dq) {
+			in_sq = !in_sq;
+		} else if (src[i] == '"' && !in_sq) {
+			in_dq = !in_dq;
+		}
+		if (!in_sq && !in_dq && src[i] == ':' && i + 1 < len &&
+		    ((src[i+1] >= 'a' && src[i+1] <= 'z') ||
+		     (src[i+1] >= 'A' && src[i+1] <= 'Z') ||
+		     src[i+1] == '_') &&
+		    (i == 0 || src[i-1] != ':')) {
+			dst[j++] = '$';
+		} else {
 			dst[j++] = src[i];
 		}
 	}
@@ -141,7 +159,8 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	S->chunk_idx = 0;
 	S->chunk_size = 0;
 
-	duckdb_state state = duckdb_prepare(H->conn, zstr_val_without_nul(sql), &S->stmt);
+	duckdb_state state = duckdb_prepare(H->conn, zstr_prepare(sql), &S->stmt);
+
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_prepare_error(S->stmt);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
@@ -161,7 +180,7 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result result;
-	duckdb_state state = duckdb_query(H->conn, zstr_val_without_nul((zend_string *)sql), &result);
+	duckdb_state state = duckdb_query(H->conn, zstr_prepare((zend_string *)sql), &result);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&result);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
