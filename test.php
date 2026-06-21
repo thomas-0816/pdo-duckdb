@@ -35,25 +35,25 @@ foreach ($duckDb->query("SELECT * FROM '/tmp/pdo_duckdb_test_table1.parquet'", P
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
 var_dump($db->lastInsertId());
-$stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
-$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
-while ($row = $stmt->fetch()) { print_r($row); }
+$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
+$statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $statement->fetch()) { print_r($row); }
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, ui UINTEGER, b BIGINT, b2 BIGINT, ub UBIGINT, h HUGEINT, u UHUGEINT)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)");
-$stmt->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18446744073709551614', '170141183460469231731687303715884105726', '340282366920938463463374607431768211455']);
-$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
-while ($row = $stmt->fetch()) { print_r($row); }
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)");
+$statement->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18446744073709551614', '170141183460469231731687303715884105726', '340282366920938463463374607431768211455']);
+$statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $statement->fetch()) { print_r($row); }
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
-$stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
-$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
-while ($row = $stmt->fetch()) { print_r($row); }
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
+$statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $statement->fetch()) { print_r($row); }
 
 
 if (file_exists('/tmp/pdo_duckdb_test.db')) {
@@ -62,10 +62,10 @@ if (file_exists('/tmp/pdo_duckdb_test.db')) {
 
 $db = new PDO('duckdb:/tmp/pdo_duckdb_test.db');
 $db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?)");
-$stmt->execute([1, 'hello']);
-$stmt = $db->query("SELECT * FROM t");
-while ($row = $stmt->fetch()) { print_r($row); }
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?)");
+$statement->execute([1, 'hello']);
+$statement = $db->query("SELECT * FROM t");
+while ($row = $statement->fetch()) { print_r($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { print_r($row); }
 unset($db);
 
@@ -480,14 +480,14 @@ $statement = $db->query("SELECT ('10101010'::BIT || '11110000'::BIT) AS concat")
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE bit_table (id INTEGER, b BIT)");
-$stmt = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
-$stmt->bindValue(1, 1, PDO::PARAM_INT);
-$stmt->bindValue(2, '101010', PDO::PARAM_STR);
-$stmt->execute();
-$stmt = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
-$stmt->bindValue(1, 2, PDO::PARAM_INT);
-$stmt->bindValue(2, '110011', PDO::PARAM_STR);
-$stmt->execute();
+$statement = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
+$statement->bindValue(1, 1, PDO::PARAM_INT);
+$statement->bindValue(2, '101010', PDO::PARAM_STR);
+$statement->execute();
+$statement = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
+$statement->bindValue(1, 2, PDO::PARAM_INT);
+$statement->bindValue(2, '110011', PDO::PARAM_STR);
+$statement->execute();
 $statement = $db->query("SELECT * FROM bit_table ORDER BY id");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -558,14 +558,55 @@ var_dump($db->quote($string));
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
-$stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query('SELECT * FROM t', PDO::FETCH_NUM);
 print_r([$statement->getColumnMeta(0), $statement->getColumnMeta(1), $statement->getColumnMeta(2), $statement->getColumnMeta(3), $statement->getColumnMeta(4)]);
 foreach ($statement->getIterator() as $row) {
     print_r($row);
 }
 
-// TODO nullable columns
+
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?)");
+$statement->execute([1, 2, 9223372036854775807, 3.141511313212312312, 'hello']);
+$statement = $db->prepare("UPDATE t SET n = ?, i = ?, b = ?, d = ?, v = ?");
+$statement->execute([2, 3, 4, 5.67, 'world']);
+print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES ($2, $1, $3, $5, $4)');
+$statement->execute([2, 1, 9223372036854775807, 'hello', 3.141511313212312312]);
+print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+$statement->execute(['bb' => 2, 'aa' => 1, 'cc' => 9223372036854775807, 'ee' => 'hello', 'dd' => 3.141511313212312312]);
+print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+try {
+    $statement->execute(['bb' => 2, 'aa' => 1]);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+$statement->bindValue('aa', 100, PDO::PARAM_INT);
+$statement->bindValue('bb', 200, PDO::PARAM_INT);
+$statement->bindValue('cc', 300, PDO::PARAM_INT);
+$statement->bindValue('dd', 42.21, PDO::PARAM_STR);
+$statement->bindValue('ee', 'bindValue test', PDO::PARAM_STR);
+$statement->execute();
+print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 unset($db);

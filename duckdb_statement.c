@@ -1065,6 +1065,25 @@ static duckdb_bit php_str_to_duckdb_bit(const char *str, size_t len)
 	return bit;
 }
 
+/* Resolve a named parameter to a DuckDB 1-based positional index.
+ * Returns 0 on failure. */
+static idx_t duckdb_resolve_named_param(duckdb_prepared_statement stmt, const char *name)
+{
+	/* DuckDB stores parameter names internally without any prefix — the $ is
+	   SQL syntax, not part of the name. Strip leading ':' or '$' before looking up. */
+	const char *bare = name;
+	while (*bare == ':' || *bare == '$') {
+		bare++;
+	}
+
+	idx_t idx;
+	duckdb_state state = duckdb_bind_parameter_index(stmt, &idx, bare);
+	if (state != DuckDBSuccess) {
+		return 0;
+	}
+	return idx;
+}
+
 /* ---------------- parameter hook (binding before execution) ---------------- */
 static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data *param,
                                    enum pdo_param_event event_type)
@@ -1073,8 +1092,19 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 
 	if (event_type == PDO_PARAM_EVT_EXEC_PRE) {
 		duckdb_state state = DuckDBError;
-		/* param->paramno is 0-based in PDO, but DuckDB expects 1-based index */
-		idx_t idx = param->paramno + 1;
+		idx_t idx;
+
+		if (param->paramno >= 0) {
+			/* param->paramno is 0-based in PDO, but DuckDB expects 1-based index */
+			idx = param->paramno + 1;
+		} else {
+			idx = duckdb_resolve_named_param(S->stmt, ZSTR_VAL(param->name));
+			if (idx == 0) {
+				pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) stmt->dbh->driver_data;
+				strncpy(H->error_msg, "could not resolve named parameter", sizeof(H->error_msg) - 1);
+				return 0;
+			}
+		}
 
 		switch (PDO_PARAM_TYPE(param->param_type)) {
 			case PDO_PARAM_NULL:
