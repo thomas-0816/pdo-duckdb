@@ -14,7 +14,32 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { var_dump($row); }
 
+$statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
+
+$db = new PDO('duckdb::memory:');
+try {
+    $db->exec("
+        LOAD parquet;
+        SET enable_external_access = false;
+        select * from 'http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet';
+    ");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$db = new PDO('duckdb::memory:');
+try {
+    $db->exec("
+        LOAD parquet;
+        SET enable_external_access = false;
+        select * from '/tmp/pdo_duckdb_test_table1.parquet';
+    ");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
 
 ?>
 --EXPECTF--
@@ -28,4 +53,44 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
+array(4) {
+  [0]=>
+  array(3) {
+    ["extension_name"]=>
+    string(14) "core_functions"
+    ["loaded"]=>
+    bool(false)
+    ["installed"]=>
+    bool(true)
+  }
+  [1]=>
+  array(3) {
+    ["extension_name"]=>
+    string(3) "icu"
+    ["loaded"]=>
+    bool(false)
+    ["installed"]=>
+    bool(true)
+  }
+  [2]=>
+  array(3) {
+    ["extension_name"]=>
+    string(4) "json"
+    ["loaded"]=>
+    bool(false)
+    ["installed"]=>
+    bool(true)
+  }
+  [3]=>
+  array(3) {
+    ["extension_name"]=>
+    string(7) "parquet"
+    ["loaded"]=>
+    bool(false)
+    ["installed"]=>
+    bool(true)
+  }
+}
 bool(true)
+Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
+Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration

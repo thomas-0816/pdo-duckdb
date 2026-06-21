@@ -672,4 +672,8 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:');
+$statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
 unset($db);
