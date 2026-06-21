@@ -215,6 +215,15 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 
 	/* Parameter binding already done by param_hook before this call */
 
+	if (S->result_set) {
+		duckdb_destroy_result(&S->result);
+		S->result_set = 0;
+	}
+	if (S->chunk) {
+		duckdb_destroy_data_chunk(&S->chunk);
+		S->chunk = NULL;
+	}
+
 	duckdb_state state = duckdb_execute_prepared(S->stmt, &S->result);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&S->result);
