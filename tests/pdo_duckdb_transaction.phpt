@@ -9,14 +9,14 @@ $db = new PDO('duckdb::memory:');
 
 $db->exec("CREATE TABLE txn_test (id INTEGER, val VARCHAR)");
 $db->beginTransaction();
-$statement = $db->prepare("INSERT INTO txn_test VALUES (?, ?)");
-$statement->execute([1, 'committed']);
+$insert = $db->prepare("INSERT INTO txn_test VALUES (?, ?)");
+$insert->execute([1, 'committed']);
 $db->commit();
 $statement = $db->query("SELECT * FROM txn_test");
 echo "After commit:\n";
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $db->beginTransaction();
-$statement->execute([2, 'rolled_back']);
+$insert->execute([2, 'rolled_back']);
 $db->rollback();
 $statement = $db->query("SELECT * FROM txn_test");
 echo "After rollback:\n";
