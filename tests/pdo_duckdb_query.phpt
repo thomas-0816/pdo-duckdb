@@ -94,6 +94,13 @@ $statement->bindValue(':cc', 300);
 $statement->bindValue(':dd', 42.21);
 $statement->bindValue(':ee', 'test');
 $statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+$statement->bindValue('aa', null);
+$statement->bindValue('bb', 205);
+$statement->bindValue('cc', 300);
+$statement->bindValue('dd', 42.21);
+$statement->bindValue('ee', 'test');
+$statement->execute();
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
@@ -151,7 +158,13 @@ $statement = $db->prepare("INSERT INTO t VALUES (?)");
 $statement->bindValue(1, "he\0llo", PDO::PARAM_STR);
 $statement->execute();
 $statement = $db->query("SELECT * FROM t");
-echo json_encode($statement->fetchAll(PDO::FETCH_COLUMN));
+echo json_encode($statement->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+$statement->execute(['bb' => 2, 'aa' => 1, 'cc' => 9223372036854775807, 'ee' => 'hello', 'dd' => 3.141511313212312312]);
+var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
@@ -319,7 +332,7 @@ array(1) {
   }
 }
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
-array(4) {
+array(5) {
   [0]=>
   array(5) {
     ["n"]=>
@@ -372,6 +385,19 @@ array(4) {
     ["v"]=>
     string(4) "test"
   }
+  [4]=>
+  array(5) {
+    ["n"]=>
+    NULL
+    ["i"]=>
+    int(205)
+    ["b"]=>
+    int(300)
+    ["d"]=>
+    float(42.21)
+    ["v"]=>
+    string(4) "test"
+  }
 }
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 3, 4, 5
@@ -394,3 +420,18 @@ array(1) {
   }
 }
 ["he\u0000llo","he\u0000llo","he\u0000llo","he\u0000llo"]
+array(1) {
+  [0]=>
+  array(5) {
+    ["n"]=>
+    int(1)
+    ["i"]=>
+    int(2)
+    ["b"]=>
+    int(9223372036854775807)
+    ["d"]=>
+    float(3.14)
+    ["v"]=>
+    string(5) "hello"
+  }
+}
