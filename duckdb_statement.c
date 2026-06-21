@@ -881,6 +881,7 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 		duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 		const char *str_data = duckdb_string_t_data(&str);
 		size_t str_len = duckdb_string_t_length(str);
+		ZVAL_NULL(result);
 		if (php_json_decode(result, str_data, str_len, 1, 512) != SUCCESS) {
 			ZVAL_STRINGL(result, str_data, str_len);
 		}
@@ -895,6 +896,7 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			const char *str_data = duckdb_string_t_data(&str);
 			size_t str_len = duckdb_string_t_length(str);
+			ZVAL_NULL(result);
 			if (php_json_decode(result, str_data, str_len, 1, 512) != SUCCESS) {
 				ZVAL_STRINGL(result, str_data, str_len);
 			}
