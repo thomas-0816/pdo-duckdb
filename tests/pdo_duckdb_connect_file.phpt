@@ -68,6 +68,6 @@ array(4) {
   [1]=>
   string(5) "hello"
 }
-Caught: Could not open DuckDB database:
+Caught: SQLSTATE[HY000]: Could not open DuckDB database: %a
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
