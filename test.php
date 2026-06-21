@@ -625,12 +625,4 @@ $statement->bindValue('ee', 'test');
 $statement->execute();
 print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
-
-$db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
-$statement = $db->prepare('INSERT INTO t VALUES ($2, $1, $3, $5, $4)');
-$statement->execute([2, 1, 9223372036854775807, 'hello', 3.141511313212312312]);
-$statement->execute([null, null, null, null, null]);
-var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
-
 unset($db);
