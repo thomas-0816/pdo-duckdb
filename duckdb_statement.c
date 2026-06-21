@@ -1106,7 +1106,9 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 			}
 		}
 
-		switch (PDO_PARAM_TYPE(param->param_type)) {
+		if (Z_ISNULL(param->parameter)) {
+			state = duckdb_bind_null(S->stmt, idx);
+		} else switch (PDO_PARAM_TYPE(param->param_type)) {
 			case PDO_PARAM_NULL:
 				state = duckdb_bind_null(S->stmt, idx);
 				break;
