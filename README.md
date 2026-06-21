@@ -194,7 +194,7 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
 
 ### Development
 
-    php -d extension=$(pwd)/modules/pdo_duckdb.so run-tests.php --show-diff --show-clean -q
+    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
 
 ### AI Disclosure
 

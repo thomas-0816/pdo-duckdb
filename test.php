@@ -655,7 +655,7 @@ try {
     $db->exec("
         LOAD parquet;
         SET enable_external_access = false;
-        select * from 'http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet';
+        SELECT * FROM 'http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet';
     ");
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
@@ -666,7 +666,7 @@ try {
     $db->exec("
         LOAD parquet;
         SET enable_external_access = false;
-        select * from '/tmp/pdo_duckdb_test_table1.parquet';
+        SELECT * FROM '/tmp/pdo_duckdb_test_table1.parquet';
     ");
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
