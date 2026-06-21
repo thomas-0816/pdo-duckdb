@@ -231,6 +231,9 @@ static bool duckdb_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 		case PDO_ATTR_AUTOCOMMIT:
 			H->auto_commit = zval_get_long(val) ? 1 : 0;
 			return true;
+		case PDO_DUCKDB_ATTR_UNBUFFERED:
+			H->unbuffered = zval_is_true(val) ? 1 : 0;
+			return true;
 		default:
 			return false;
 	}
@@ -246,6 +249,9 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 			return 1;
 		case PDO_ATTR_AUTOCOMMIT:
 			ZVAL_LONG(val, H->auto_commit);
+			return 1;
+		case PDO_DUCKDB_ATTR_UNBUFFERED:
+			ZVAL_BOOL(val, H->unbuffered);
 			return 1;
 		default:
 			return 0;

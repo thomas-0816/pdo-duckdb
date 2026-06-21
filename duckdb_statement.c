@@ -224,7 +224,12 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 		S->chunk = NULL;
 	}
 
-	duckdb_state state = duckdb_execute_prepared(S->stmt, &S->result);
+	duckdb_state state;
+	if (H->unbuffered) {
+		state = duckdb_execute_prepared_streaming(S->stmt, &S->result);
+	} else {
+		state = duckdb_execute_prepared(S->stmt, &S->result);
+	}
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&S->result);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,

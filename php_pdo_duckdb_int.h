@@ -24,7 +24,8 @@ extern struct pdo_stmt_methods  duckdb_stmt_methods;
 /* Driver‑specific attributes (mapped to PDO constants) */
 enum {
 	PDO_DUCKDB_ATTR_OPEN_FLAGS = PDO_ATTR_DRIVER_SPECIFIC,
-	PDO_DUCKDB_ATTR_READONLY
+	PDO_DUCKDB_ATTR_READONLY,
+	PDO_DUCKDB_ATTR_UNBUFFERED
 };
 
 /* Connection data – one per PDO handle */
@@ -34,6 +35,7 @@ typedef struct _pdo_duckdb_db_handle {
 	unsigned int       attr_flags;        /* internal flag storage */
 	char               error_msg[256];    /* last error message */
 	int                auto_commit;       /* PDO::ATTR_AUTOCOMMIT */
+	int                unbuffered;        /* PDO::DUCKDB_ATTR_UNBUFFERED */
 } pdo_duckdb_db_handle;
 
 /* Statement data – one per PDOStatement handle */
