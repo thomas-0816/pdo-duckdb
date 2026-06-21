@@ -604,25 +604,29 @@ $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
 $statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
 $statement->bindValue('aa', null, PDO::PARAM_NULL);
-$statement->bindValue('bb', 200, PDO::PARAM_INT);
+$statement->bindValue('bb', 201, PDO::PARAM_INT);
 $statement->bindValue('cc', 300, PDO::PARAM_INT);
 $statement->bindValue('dd', 42.21, PDO::PARAM_STR);
 $statement->bindValue('ee', 'test', PDO::PARAM_STR);
 $statement->execute();
 $statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
 $statement->bindValue('aa', null);
-$statement->bindValue('bb', 200);
+$statement->bindValue('bb', 202);
 $statement->bindValue('cc', 300);
 $statement->bindValue('dd', 42.21);
 $statement->bindValue('ee', 'test');
 $statement->execute();
 $statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
 $statement->bindValue('aa', null);
-$statement->bindValue('bb', 200);
+$statement->bindValue('bb', 203);
+$statement->execute(); // TODO throw exception if execute fails
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
+$statement->bindValue('aa', null);
+$statement->bindValue('bb', 203);
 $statement->bindValue('cc', 300);
 $statement->bindValue('dd', 42.21);
 $statement->bindValue('ee', 'test');
-$statement->execute();
+$statement->execute(); // TODO fix missing row in the database
 print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 unset($db);

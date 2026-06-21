@@ -40,6 +40,7 @@ $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
 $statement = $db->prepare('INSERT INTO t VALUES ($2, $1, $3, $5, $4)');
 $statement->execute([2, 1, 9223372036854775807, 'hello', 3.141511313212312312]);
+$statement->execute([null, null, null, null, null]);
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
@@ -64,160 +65,23 @@ $statement->bindValue('aa', null, PDO::PARAM_NULL);
 $statement->bindValue('bb', 200, PDO::PARAM_INT);
 $statement->bindValue('cc', 300, PDO::PARAM_INT);
 $statement->bindValue('dd', 42.21, PDO::PARAM_STR);
-$statement->bindValue('ee', 'bindValue test', PDO::PARAM_STR);
+$statement->bindValue('ee', 'test', PDO::PARAM_STR);
+$statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+$statement->bindValue('aa', null);
+$statement->bindValue('bb', 200);
+$statement->bindValue('cc', 300);
+$statement->bindValue('dd', 42.21);
+$statement->bindValue('ee', 'test');
+$statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
+$statement->bindValue('aa', null);
+$statement->bindValue('bb', 200);
+$statement->bindValue('cc', 300);
+$statement->bindValue('dd', 42.21);
+$statement->bindValue('ee', 'test');
 $statement->execute();
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
-string(1) "0"
-array(4) {
-  ["i"]=>
-  int(1)
-  ["b"]=>
-  int(9223372036854775807)
-  ["d"]=>
-  float(3.14)
-  ["v"]=>
-  string(5) "hello"
-}
-array(4) {
-  ["i"]=>
-  int(1)
-  ["b"]=>
-  int(9223372036854775807)
-  ["d"]=>
-  float(3.14)
-  ["v"]=>
-  string(5) "hello"
-}
-array(7) {
-  ["native_type"]=>
-  string(7) "integer"
-  ["pdo_type"]=>
-  int(1)
-  ["duckdb:decl_type"]=>
-  string(7) "integer"
-  ["flags"]=>
-  array(0) {
-  }
-  ["name"]=>
-  string(1) "i"
-  ["len"]=>
-  int(0)
-  ["precision"]=>
-  int(0)
-}
-array(7) {
-  ["native_type"]=>
-  string(6) "bigint"
-  ["pdo_type"]=>
-  int(1)
-  ["duckdb:decl_type"]=>
-  string(6) "bigint"
-  ["flags"]=>
-  array(0) {
-  }
-  ["name"]=>
-  string(1) "b"
-  ["len"]=>
-  int(0)
-  ["precision"]=>
-  int(0)
-}
-array(7) {
-  ["native_type"]=>
-  string(7) "decimal"
-  ["pdo_type"]=>
-  int(2)
-  ["duckdb:decl_type"]=>
-  string(7) "decimal"
-  ["flags"]=>
-  array(0) {
-  }
-  ["name"]=>
-  string(1) "d"
-  ["len"]=>
-  int(0)
-  ["precision"]=>
-  int(0)
-}
-array(7) {
-  ["native_type"]=>
-  string(7) "varchar"
-  ["pdo_type"]=>
-  int(2)
-  ["duckdb:decl_type"]=>
-  string(7) "varchar"
-  ["flags"]=>
-  array(0) {
-  }
-  ["name"]=>
-  string(1) "v"
-  ["len"]=>
-  int(0)
-  ["precision"]=>
-  int(0)
-}
-bool(false)
-array(1) {
-  [0]=>
-  array(5) {
-    ["n"]=>
-    int(2)
-    ["i"]=>
-    int(3)
-    ["b"]=>
-    int(4)
-    ["d"]=>
-    float(5.67)
-    ["v"]=>
-    string(5) "world"
-  }
-}
-array(1) {
-  [0]=>
-  array(5) {
-    ["n"]=>
-    int(1)
-    ["i"]=>
-    int(2)
-    ["b"]=>
-    int(9223372036854775807)
-    ["d"]=>
-    float(3.14)
-    ["v"]=>
-    string(5) "hello"
-  }
-}
-array(1) {
-  [0]=>
-  array(5) {
-    ["n"]=>
-    int(1)
-    ["i"]=>
-    int(2)
-    ["b"]=>
-    int(9223372036854775807)
-    ["d"]=>
-    float(3.14)
-    ["v"]=>
-    string(5) "hello"
-  }
-}
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
-array(1) {
-  [0]=>
-  array(5) {
-    ["n"]=>
-    NULL
-    ["i"]=>
-    int(200)
-    ["b"]=>
-    int(300)
-    ["d"]=>
-    float(42.21)
-    ["v"]=>
-    string(14) "bindValue test"
-  }
-}
