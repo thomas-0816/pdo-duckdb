@@ -711,4 +711,14 @@ $statement->execute();
 $statement = $db->query("SELECT * FROM t");
 echo json_encode($statement->fetchAll(PDO::FETCH_COLUMN));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
+$statement->bindValue('$aa', null, PDO::PARAM_NULL);
+$statement->bindValue('$bb', 201, PDO::PARAM_INT);
+$statement->bindValue('$cc', 300, PDO::PARAM_INT);
+$statement->bindValue('$dd', 42.21, PDO::PARAM_STR);
+$statement->bindValue('$ee', 'test', PDO::PARAM_STR);
+$statement->execute();
+
 unset($db);

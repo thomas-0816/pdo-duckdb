@@ -1099,7 +1099,7 @@ static idx_t duckdb_resolve_named_param(duckdb_prepared_statement stmt, const ch
 	/* DuckDB stores parameter names internally without any prefix — the $ is
 	   SQL syntax, not part of the name. Strip leading ':' or '$' before looking up. */
 	const char *bare = name;
-	while (*bare == ':') {
+	while (*bare == ':' || *bare == '$') {
 		bare++;
 	}
 

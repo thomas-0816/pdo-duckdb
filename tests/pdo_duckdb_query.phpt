@@ -166,6 +166,12 @@ $statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
 $statement->execute(['bb' => 2, 'aa' => 1, 'cc' => 9223372036854775807, 'ee' => 'hello', 'dd' => 3.141511313212312312]);
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+$statement->execute(['$bb' => 2, '$aa' => 1, '$cc' => 9223372036854775807, '$ee' => '$hello', '$dd' => 3.141511313212312312]);
+var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -433,5 +439,20 @@ array(1) {
     float(3.14)
     ["v"]=>
     string(5) "hello"
+  }
+}
+array(1) {
+  [0]=>
+  array(5) {
+    ["n"]=>
+    int(1)
+    ["i"]=>
+    int(2)
+    ["b"]=>
+    int(9223372036854775807)
+    ["d"]=>
+    float(3.14)
+    ["v"]=>
+    string(6) "$hello"
   }
 }
