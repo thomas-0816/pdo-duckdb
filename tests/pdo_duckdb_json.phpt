@@ -31,6 +31,13 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query('SELECT \'2023-05-12\'::DATE::JSON');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+try {
+    $db = new PDO('duckdb::memory:');
+    $db->exec("SET errors_as_json = true; SELECT foo FROM bar");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 array(1) {
@@ -95,3 +102,4 @@ array(1) {
     string(10) "2023-05-12"
   }
 }
+Caught: SQLSTATE[HY000]: {"exception_type":"Catalog","exception_message":"Table with name bar does not exist!\nDid you mean \"pg_attrdef\"?","candidates":"pg_attrdef","position":"43","error_subtype":"MISSING_ENTRY","type":"Table","name":"bar"}

@@ -537,6 +537,21 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('threads', 'memory_limit')");
 print_r($statement->fetchAll(PDO::FETCH_COLUMN));
 
-// TODO SET errors_as_json = true;
+try {
+    $duckDb = new PDO('duckdb:/tmp/invalid/test.db');
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+try {
+    $db = new PDO('duckdb::memory:');
+    $db->exec("SET errors_as_json = true; SELECT foo FROM bar");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+
+// TODO nullable columns
+// TODO pdo column meta
 
 unset($db);

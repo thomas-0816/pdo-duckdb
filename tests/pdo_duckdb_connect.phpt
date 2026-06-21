@@ -12,6 +12,12 @@ $stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $stmt->fetch()) { var_dump($row); }
 
+try {
+    $duckDb = new PDO('duckdb:/tmp/invalid/test.db');
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 array(4) {
@@ -24,3 +30,4 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
+Caught: Could not open DuckDB database
