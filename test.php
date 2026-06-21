@@ -52,11 +52,7 @@ while ($row = $stmt->fetch()) { print_r($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { print_r($row); }
 unset($db);
 
-if (file_exists('/tmp/test_logs.json')) {
-    unlink('/tmp/test_logs.json');
-}
-
-file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL, FILE_APPEND);
+file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
 file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
 
 $db = new PDO('duckdb::memory:');
@@ -489,5 +485,43 @@ $db->exec("INSERT INTO geometries VALUES
   (7, 'GEOMETRYCOLLECTION (POINT(40 10), LINESTRING(10 10,20 20,10 40), POLYGON((40 40,20 45,45 30,40 40)))')");
 $statement = $db->query("SELECT geom FROM geometries");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
+file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+
+// limit threads and memory usage for converting big files, see https://github.com/duckdb/duckdb/issues/16078
+// 100k rows per group
+$db->exec("
+    set memory_limit='4GB';
+    set threads = 1;
+    SET preserve_insertion_order=false;
+    copy (select * from read_ndjson('/tmp/test_logs.json', ignore_errors=true))
+    to '/tmp/test_logs.parquet' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE 100_000)
+");
+// 100M bytes per group
+$db->exec("
+    set memory_limit='4GB';
+    set threads = 1;
+    SET preserve_insertion_order=false;
+    copy (select * from read_ndjson('/tmp/test_logs.json', ignore_errors=true))
+    to '/tmp/test_logs2.parquet' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE_BYTES 100_000_000)
+");
+
+$statement = $db->query("SELECT * FROM '/tmp/test_logs.parquet'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT * FROM '/tmp/test_logs2.parquet'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT * FROM parquet_schema('/tmp/test_logs2.parquet')");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT * FROM parquet_metadata('/tmp/test_logs2.parquet')");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT * FROM parquet_file_metadata('/tmp/test_logs2.parquet')");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('threads', 'memory_limit')");
+print_r($statement->fetchAll(PDO::FETCH_COLUMN));
+
+// SET errors_as_json = true;
 
 unset($db);

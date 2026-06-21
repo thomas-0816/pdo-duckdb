@@ -312,6 +312,32 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			ZVAL_LONG(result, (zend_long)val);
 			break;
 		}
+		case DUCKDB_TYPE_UTINYINT: {
+			uint8_t val = ((uint8_t *)duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long)val);
+			break;
+		}
+		case DUCKDB_TYPE_USMALLINT: {
+			uint16_t val = ((uint16_t *)duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long)val);
+			break;
+		}
+		case DUCKDB_TYPE_UINTEGER: {
+			uint32_t val = ((uint32_t *)duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long)val);
+			break;
+		}
+		case DUCKDB_TYPE_UBIGINT: {
+			uint64_t val = ((uint64_t *)duckdb_vector_get_data(vec))[row_idx];
+			if (val > (uint64_t)ZEND_LONG_MAX) {
+				char buf[24];
+				snprintf(buf, sizeof(buf), "%" PRIu64, val);
+				ZVAL_STRING(result, buf);
+			} else {
+				ZVAL_LONG(result, (zend_long)val);
+			}
+			break;
+		}
 		case DUCKDB_TYPE_FLOAT: {
 			float val = ((float *)duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
@@ -358,6 +384,26 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				}
 				int pos = 0;
 				if (neg) buf[pos++] = '-';
+				while (i > 0) buf[pos++] = tmp[--i];
+				buf[pos] = '\0';
+			}
+			ZVAL_STRING(result, buf);
+			break;
+		}
+		case DUCKDB_TYPE_UHUGEINT: {
+			duckdb_uhugeint val = ((duckdb_uhugeint *)duckdb_vector_get_data(vec))[row_idx];
+			unsigned __int128 v = (unsigned __int128)val.upper << 64 | val.lower;
+			char buf[40];
+			if (v == 0) {
+				snprintf(buf, sizeof(buf), "0");
+			} else {
+				char tmp[40];
+				int i = 0;
+				while (v > 0) {
+					tmp[i++] = '0' + (char)(v % 10);
+					v /= 10;
+				}
+				int pos = 0;
 				while (i > 0) buf[pos++] = tmp[--i];
 				buf[pos] = '\0';
 			}
