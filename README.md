@@ -10,7 +10,7 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 
 ### Usage examples
 
-    $duckDb = new PDO('duckdb::memory:');$duckDb = new PDO('duckdb::memory:');
+    $duckDb = new PDO('duckdb::memory:');
     $duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR)");
 
     $statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
@@ -110,6 +110,10 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     $statement = $db->exec("
         COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)
     ");
+
+
+    // open test.db read-only
+    $db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
 
 ### Setup
 
