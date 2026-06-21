@@ -121,6 +121,24 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 }
 echo $count . PHP_EOL;
 
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT '1\01'");
+var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+$db->exec("CREATE TABLE t (v VARCHAR)");
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->execute(["he\0llo"]);
+$statement = $db->prepare('INSERT INTO t VALUES ($aa)');
+$statement->bindValue('aa', "he\0llo", PDO::PARAM_STR);
+$statement->execute();
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->bindValue(1, "he\0llo");
+$statement->execute();
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->bindValue(1, "he\0llo", PDO::PARAM_STR);
+$statement->execute();
+$statement = $db->query("SELECT * FROM t");
+echo json_encode($statement->fetchAll(PDO::FETCH_COLUMN));
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -324,3 +342,8 @@ array(1) {
 }
 bool(true)
 20000
+array(1) {
+  [0]=>
+  string(2) "1"
+}
+["he\u0000llo","he\u0000llo","he\u0000llo","he\u0000llo"]

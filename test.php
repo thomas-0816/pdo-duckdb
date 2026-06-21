@@ -693,4 +693,22 @@ $db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['a
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
 print_r($statement->fetchAll(PDO::FETCH_COLUMN));
 
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT '1\01'");
+var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+$db->exec("CREATE TABLE t (v VARCHAR)");
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->execute(["he\0llo"]);
+$statement = $db->prepare('INSERT INTO t VALUES ($aa)');
+$statement->bindValue('aa', "he\0llo", PDO::PARAM_STR);
+$statement->execute();
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->bindValue(1, "he\0llo");
+$statement->execute();
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->bindValue(1, "he\0llo", PDO::PARAM_STR);
+$statement->execute();
+$statement = $db->query("SELECT * FROM t");
+echo json_encode($statement->fetchAll(PDO::FETCH_COLUMN));
+
 unset($db);
