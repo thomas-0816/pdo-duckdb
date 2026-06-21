@@ -7,11 +7,16 @@ pdo_duckdb
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
-$stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 var_dump($db->lastInsertId());
-$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
-while ($row = $stmt->fetch()) { var_dump($row); }
+$statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $statement->fetch()) { var_dump($row); }
+
+$statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+foreach ($statement->getIterator() as $row) {
+    print_r($row);
+}
 
 $statement = $db->query('SELECT * FROM t');
 var_dump($statement->getColumnMeta(0));
@@ -41,6 +46,13 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
+Array
+(
+    [i] => 1
+    [b] => 9223372036854775807
+    [d] => 3.14
+    [v] => hello
+)
 array(7) {
   ["native_type"]=>
   string(7) "integer"
