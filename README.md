@@ -134,7 +134,7 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     // s is array{v: string, i: int, a: string[], d: float}
 
     $db = new PDO('duckdb::memory:');
-    $db->exec("create table table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL(10, 2)))");
+    $db->exec("create table table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL))");
 
     $statement = $db->prepare("INSERT INTO table1 VALUES (?)");
     $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
