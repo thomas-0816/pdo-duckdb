@@ -587,7 +587,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_ENUM: {
-			char *str = duckdb_enum_get_string(vec, row_idx);
+			char *str = duckdb_get_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
 			} else {
@@ -611,7 +611,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_INTERVAL: {
-			char *str = duckdb_interval_get_string(vec, row_idx);
+			char *str = duckdb_get_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
 			} else {
@@ -634,14 +634,11 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_GEOMETRY: {
-			char *str = duckdb_geometry_get_string(vec, row_idx);
+			char *str = duckdb_get_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
 			} else {
-				size_t str_len = strlen(str);
-				if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-					ZVAL_STRINGL(result, str, str_len);
-				}
+				ZVAL_STRING(result, str);
 				duckdb_free(str);
 			}
 			break;
@@ -702,14 +699,11 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 		return 1;
 	}
 	if (col_type == DUCKDB_TYPE_GEOMETRY) {
-		char *str = duckdb_geometry_get_string(vec, row_idx);
+		char *str = duckdb_get_string(vec, row_idx);
 		if (str == NULL) {
 			ZVAL_NULL(result);
 		} else {
-			size_t str_len = strlen(str);
-			if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-				ZVAL_STRINGL(result, str, str_len);
-			}
+			ZVAL_STRING(result, str);
 			duckdb_free(str);
 		}
 		duckdb_destroy_logical_type(&logical_type);
