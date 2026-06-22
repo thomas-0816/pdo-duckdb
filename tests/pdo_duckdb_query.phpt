@@ -477,3 +477,67 @@ array(1) {
     string(6) "$hello"
   }
 }
+array(1) {
+  [0]=>
+  array(1) {
+    ["v"]=>
+    array(2) {
+      [0]=>
+      string(5) "hello"
+      [1]=>
+      string(5) "world"
+    }
+  }
+}
+array(5) {
+  [0]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      ["foo"]=>
+      string(3) "bar"
+      ["hello"]=>
+      string(5) "world"
+    }
+  }
+  [1]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      [0]=>
+      string(3) "foo"
+      [1]=>
+      string(3) "bar"
+    }
+  }
+  [2]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      ["foo"]=>
+      string(3) "bar"
+      ["hello"]=>
+      string(5) "world"
+    }
+  }
+  [3]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      ["foo"]=>
+      string(3) "bar"
+      ["hello"]=>
+      string(5) "world"
+    }
+  }
+  [4]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      [0]=>
+      string(3) "foo"
+      [1]=>
+      string(3) "bar"
+    }
+  }
+}

@@ -134,7 +134,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("create table t1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], j JSON))");
 $statement = $db->prepare("INSERT INTO t1 VALUES (?)");
-$statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], [1, 2, null, 'asd']]]);
+$statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'j' => [1, 2, null, 'asd']]]);
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -615,5 +615,35 @@ array(1) {
   array(1) {
     ["(main.struct_pack(k1 := 1, k2 := 0) > main.struct_pack(k3 := 0, k1 := 0))"]=>
     bool(true)
+  }
+}
+array(1) {
+  [0]=>
+  array(1) {
+    ["s"]=>
+    array(4) {
+      ["v"]=>
+      string(3) "foo"
+      ["i"]=>
+      int(21)
+      ["a"]=>
+      array(2) {
+        [0]=>
+        string(1) "b"
+        [1]=>
+        string(1) "c"
+      }
+      ["j"]=>
+      array(4) {
+        [0]=>
+        int(1)
+        [1]=>
+        int(2)
+        [2]=>
+        NULL
+        [3]=>
+        string(3) "asd"
+      }
+    }
   }
 }
