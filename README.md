@@ -170,9 +170,6 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     make -j$(nproc)
     NO_INTERACTION=1 make test
 
-    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-
     sudo make install
     sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini'
     sudo phpenmod pdo_duckdb
@@ -239,6 +236,8 @@ This ensures queries only scan necessary data and avoids full-table sorting when
 Direct File Querying: You can query large datasets in open formats like Parquet and CSV directly on disk or in cloud storage (like AWS S3) without needing to import or convert the data first.
 
 ### Development
+
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
     php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
 
