@@ -754,11 +754,12 @@ $db->exec("create table t1 (v VARIANT)");
 $db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
 $statement = $db->prepare("INSERT INTO t1 VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?)");
 $statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar', true, null], ['foo' => 'bar'], 9223372036854775807, '340282366920938463463374607431768211455']);
-$db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), (MAP {'key1': 10}), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR)");
-$db->exec("INSERT INTO t1 VALUES ('sad'::mood), ('[1, null, {\"key\": \"value\"}]'::JSON), (true), ({'key1': 'value1'}), (uuidv4()), (union_value(str := 'three'))");
-//$db->exec("INSERT INTO t1 VALUES ('sad'::mood), (MAP {'key1': 10}), ('[1, null, {\"key\": \"value\"}]'::JSON), ({'key1': 'value1'}), (union_value(str := 'three'))");
-// TODO blob, variant in struct, geometry
+$db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR), (true), (uuidv4()), ('sad'::mood), (union_value(str := 'three'))");
+$db->exec("INSERT INTO t1 VALUES (MAP {'key1': 10}), ('[1, null, {\"key\": \"value\"}]'::JSON), ({'key1': 'value1'})");
+$db->exec("INSERT INTO t1 VALUES (TIMESTAMP_NS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_MS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_S '1992-09-20 11:30:00.123456789')");
+$db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), (TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'), (timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40'))");
+
 $statement = $db->query("SELECT * FROM t1");
-var_export($statement->fetchAll(PDO::FETCH_ASSOC)); // TODO fix type: map, bitstring, date, interval, json, struct, uuid
+var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
 unset($db);
