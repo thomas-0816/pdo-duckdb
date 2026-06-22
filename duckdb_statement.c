@@ -587,35 +587,12 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_ENUM: {
-			duckdb_type internal_type = duckdb_enum_internal_type(logical_type);
-			uint64_t enum_idx;
-			switch (internal_type) {
-				case DUCKDB_TYPE_UTINYINT:
-					enum_idx = ((uint8_t *)duckdb_vector_get_data(vec))[row_idx];
-					break;
-				case DUCKDB_TYPE_USMALLINT:
-					enum_idx = ((uint16_t *)duckdb_vector_get_data(vec))[row_idx];
-					break;
-				case DUCKDB_TYPE_UINTEGER:
-					enum_idx = ((uint32_t *)duckdb_vector_get_data(vec))[row_idx];
-					break;
-				case DUCKDB_TYPE_UBIGINT:
-					enum_idx = ((uint64_t *)duckdb_vector_get_data(vec))[row_idx];
-					break;
-				default: {
-					char *val = duckdb_enum_dictionary_value(logical_type, 0);
-					ZVAL_STRING(result, val);
-					duckdb_free(val);
-					return;
-				}
-			}
-			uint32_t dict_size = duckdb_enum_dictionary_size(logical_type);
-			if (enum_idx < dict_size) {
-				char *val = duckdb_enum_dictionary_value(logical_type, enum_idx);
-				ZVAL_STRING(result, val);
-				duckdb_free(val);
-			} else {
+			char *str = duckdb_enum_get_string(vec, row_idx);
+			if (str == NULL) {
 				ZVAL_NULL(result);
+			} else {
+				ZVAL_STRING(result, str);
+				duckdb_free(str);
 			}
 			break;
 		}
