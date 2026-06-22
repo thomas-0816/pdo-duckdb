@@ -689,8 +689,8 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 }
 echo $count . PHP_EOL;
 
-new PDO('duckdb:/tmp/test.db');
-$db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+new PDO('duckdb:/tmp/test11.db');
+$db = new PDO('duckdb:/tmp/test11.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
 print_r($statement->fetchAll(PDO::FETCH_COLUMN));
 
@@ -746,6 +746,13 @@ print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 $db->exec("create table t1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], j JSON))");
 $statement = $db->prepare("INSERT INTO t1 VALUES (?)");
 $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'j' => [1, 2, null, 'asd']]]);
+$statement = $db->query("SELECT * FROM t1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("create table t1 (v VARIANT)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?), (?), (?), (?), (?), (?)");
+$statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar'], ['foo' => 'bar']]);
 $statement = $db->query("SELECT * FROM t1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
