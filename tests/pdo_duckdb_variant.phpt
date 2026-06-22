@@ -25,6 +25,16 @@ $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), 
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("create table t1 (s STRUCT(v VARIANT))");
+$db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?)");
+$statement->execute([['v' => 'hello']]);
+$db->exec("INSERT INTO t1 VALUES ({'v': MAP {'key1': 10}}), ({'v': {'key1': 'value1'}})");
+
+$statement = $db->query("SELECT * FROM t1");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(7) {
@@ -255,5 +265,42 @@ array(28) {
   array(1) {
     ["v"]=>
     string(22) "2001-02-17 03:38:40+00"
+  }
+}
+array(3) {
+  [0]=>
+  array(1) {
+    ["s"]=>
+    array(1) {
+      ["v"]=>
+      string(5) "hello"
+    }
+  }
+  [1]=>
+  array(1) {
+    ["s"]=>
+    array(1) {
+      ["v"]=>
+      array(1) {
+        [0]=>
+        array(2) {
+          ["key"]=>
+          string(4) "key1"
+          ["value"]=>
+          int(10)
+        }
+      }
+    }
+  }
+  [2]=>
+  array(1) {
+    ["s"]=>
+    array(1) {
+      ["v"]=>
+      array(1) {
+        ["key1"]=>
+        string(6) "value1"
+      }
+    }
   }
 }

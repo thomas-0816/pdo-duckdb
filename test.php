@@ -758,8 +758,18 @@ $db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), ('101010'::BIT), ('2969-0
 $db->exec("INSERT INTO t1 VALUES (MAP {'key1': 10}), ('[1, null, {\"key\": \"value\"}]'::JSON), ({'key1': 'value1'})");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMP_NS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_MS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_S '1992-09-20 11:30:00.123456789')");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), (TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'), (timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40'))");
+$statement = $db->query("SELECT * FROM t1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("create table t1 (s STRUCT(v VARIANT))");
+$db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?)");
+$statement->execute([['v' => 'hello']]);
+$db->exec("INSERT INTO t1 VALUES ({'v': MAP {'key1': 10}}), ({'v': {'key1': 'value1'}})");
 
 $statement = $db->query("SELECT * FROM t1");
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
+
 
 unset($db);
