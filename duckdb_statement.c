@@ -215,17 +215,6 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			}
 			break;
 		}
-		case DUCKDB_TYPE_HUGEINT:
-		case DUCKDB_TYPE_UHUGEINT: {
-			char *str = duckdb_get_string(vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				ZVAL_STRING(result, str);
-				duckdb_free(str);
-			}
-			break;
-		}
 		case DUCKDB_TYPE_VARCHAR: {
 			char *alias = duckdb_logical_type_get_alias(logical_type);
 			int is_json = (alias && strcmp(alias, "JSON") == 0);
@@ -549,26 +538,12 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			duckdb_destroy_logical_type(&child_type);
 			break;
 		}
-		case DUCKDB_TYPE_ENUM: {
-			char *str = duckdb_get_string(vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				ZVAL_STRING(result, str);
-				duckdb_free(str);
-			}
-			break;
-		}
-		case DUCKDB_TYPE_UUID: {
-			char *str = duckdb_get_string(vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				ZVAL_STRING(result, str);
-				duckdb_free(str);
-			}
-			break;
-		}
+		case DUCKDB_TYPE_ENUM:
+		case DUCKDB_TYPE_UUID:
+		case DUCKDB_TYPE_GEOMETRY:
+		case DUCKDB_TYPE_BIT:
+		case DUCKDB_TYPE_HUGEINT:
+		case DUCKDB_TYPE_UHUGEINT:
 		case DUCKDB_TYPE_INTERVAL: {
 			char *str = duckdb_get_string(vec, row_idx);
 			if (str == NULL) {
@@ -588,26 +563,6 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
 					ZVAL_STRINGL(result, str, str_len);
 				}
-				duckdb_free(str);
-			}
-			break;
-		}
-		case DUCKDB_TYPE_GEOMETRY: {
-			char *str = duckdb_get_string(vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				ZVAL_STRING(result, str);
-				duckdb_free(str);
-			}
-			break;
-		}
-		case DUCKDB_TYPE_BIT: {
-			char *str = duckdb_get_string(vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				ZVAL_STRING(result, str);
 				duckdb_free(str);
 			}
 			break;
