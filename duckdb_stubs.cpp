@@ -52,6 +52,63 @@ static char *variant_blob_to_string(const char *data, uint32_t size, uint8_t typ
 		if (s) snprintf(s, 30, "%ld", (long)val);
 		return s;
 	}
+	case duckdb::VariantLogicalType::INT128: {
+		if (size < 16) return NULL;
+		uint64_t lower; memcpy(&lower, data, 8);
+		int64_t upper; memcpy(&upper, data + 8, 8);
+		unsigned __int128 v;
+		int neg = 0;
+		if (upper < 0) {
+			neg = 1;
+			v = ~((unsigned __int128)(uint64_t)upper << 64 | lower) + 1;
+		} else {
+			v = (unsigned __int128)(uint64_t)upper << 64 | lower;
+		}
+		char tmp[40];
+		int i = 0;
+		if (v == 0) {
+			tmp[i++] = '0';
+		} else {
+			while (v > 0) {
+				tmp[i++] = '0' + (char)(v % 10);
+				v /= 10;
+			}
+		}
+		auto *s = (char *)duckdb_malloc(41);
+		int pos = 0;
+		if (neg) s[pos++] = '-';
+		while (i > 0) s[pos++] = tmp[--i];
+		s[pos] = '\0';
+		return s;
+	}
+	case duckdb::VariantLogicalType::UINT128: {
+		if (size < 16) return NULL;
+		uint64_t lower; memcpy(&lower, data, 8);
+		uint64_t upper; memcpy(&upper, data + 8, 8);
+		unsigned __int128 v = (unsigned __int128)upper << 64 | lower;
+		char tmp[40];
+		int i = 0;
+		if (v == 0) {
+			tmp[i++] = '0';
+		} else {
+			while (v > 0) {
+				tmp[i++] = '0' + (char)(v % 10);
+				v /= 10;
+			}
+		}
+		auto *s = (char *)duckdb_malloc(40);
+		int pos = 0;
+		while (i > 0) s[pos++] = tmp[--i];
+		s[pos] = '\0';
+		return s;
+	}
+	case duckdb::VariantLogicalType::UINT64: {
+		if (size < 8) return NULL;
+		uint64_t val; memcpy(&val, data, 8);
+		auto *s = (char *)duckdb_malloc(30);
+		if (s) snprintf(s, 30, "%lu", (unsigned long)val);
+		return s;
+	}
 	case duckdb::VariantLogicalType::FLOAT: {
 		if (size < 4) return NULL;
 		float val; memcpy(&val, data, 4);

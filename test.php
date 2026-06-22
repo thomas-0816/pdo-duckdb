@@ -751,9 +751,13 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
 $db->exec("create table t1 (v VARIANT)");
-$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?), (?), (?), (?), (?), (?)");
-$statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar'], ['foo' => 'bar']]);
+$db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?)");
+$statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar', true, null], ['foo' => 'bar'], 9223372036854775807, '340282366920938463463374607431768211455']);
+$db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), (MAP {'key1': 10}), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR)");
+$db->exec("INSERT INTO t1 VALUES ('sad'::mood), ('[1, null, {\"key\": \"value\"}]'::JSON), (true), ({'key1': 'value1'}), (uuidv4()), (union_value(str := 'three'))");
+
 $statement = $db->query("SELECT * FROM t1");
-print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+var_export($statement->fetchAll(PDO::FETCH_ASSOC)); // TODO fix type: map, bitstring, date, interval, json, struct, uuid
 
 unset($db);

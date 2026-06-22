@@ -436,7 +436,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				char *json_copy = emalloc(str_len + 1);
 				memcpy(json_copy, str_data, str_len);
 				json_copy[str_len] = '\0';
-				if (php_json_decode(result, json_copy, str_len, 1, 512) != SUCCESS) {
+				if (php_json_decode_ex(result, json_copy, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
 					ZVAL_STRINGL(result, json_copy, str_len);
 				}
 				efree(json_copy);
@@ -848,16 +848,15 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			char *str = duckdb_variant_get_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
-			} else {
-				size_t str_len = strlen(str);
-				if (php_json_decode(result, str, str_len, 1, 512) != SUCCESS) {
-					ZVAL_STRINGL(result, str, str_len);
-				}
-				duckdb_free(str);
+		} else {
+			size_t str_len = strlen(str);
+			if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
+				ZVAL_STRINGL(result, str, str_len);
 			}
-			break;
+			duckdb_free(str);
 		}
-		case DUCKDB_TYPE_GEOMETRY: {
+	}
+	case DUCKDB_TYPE_GEOMETRY: {
 			duckdb_string_t blob = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			const char *data = duckdb_string_t_data(&blob);
 			size_t len = duckdb_string_t_length(blob);
@@ -917,7 +916,7 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 			ZVAL_NULL(result);
 		} else {
 			size_t str_len = strlen(str);
-			if (php_json_decode(result, str, str_len, 1, 512) != SUCCESS) {
+			if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
 				ZVAL_STRINGL(result, str, str_len);
 			}
 			duckdb_free(str);
@@ -943,7 +942,7 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 			memcpy(json_copy, str_data, str_len);
 			json_copy[str_len] = '\0';
 			ZVAL_NULL(result);
-			if (php_json_decode(result, json_copy, str_len, 1, 512) != SUCCESS) {
+			if (php_json_decode_ex(result, json_copy, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
 				ZVAL_STRINGL(result, json_copy, str_len);
 			}
 			efree(json_copy);
