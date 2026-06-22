@@ -13,168 +13,6 @@
 #include "ext/json/php_json.h"
 #include "Zend/zend_smart_str.h"
 
-/* ---------------- WKB to WKT conversion ---------------- */
-
-#define WKB_POINT               1
-#define WKB_LINESTRING          2
-#define WKB_POLYGON             3
-#define WKB_MULTIPOINT          4
-#define WKB_MULTILINESTRING     5
-#define WKB_MULTIPOLYGON        6
-#define WKB_GEOMETRYCOLLECTION  7
-
-typedef struct {
-    char *str;
-    size_t len;
-    size_t cap;
-} wkt_buf;
-
-static void wkt_buf_init(wkt_buf *b) {
-    b->str = NULL; b->len = 0; b->cap = 0;
-}
-
-static void wkt_buf_free(wkt_buf *b) {
-    if (b->str) efree(b->str);
-    b->str = NULL; b->len = 0; b->cap = 0;
-}
-
-static void wkt_buf_grow(wkt_buf *b, size_t needed) {
-    if (b->len + needed > b->cap) {
-        b->cap = b->cap ? b->cap : 256;
-        while (b->len + needed >= b->cap) b->cap *= 2;
-        b->str = erealloc(b->str, b->cap);
-    }
-}
-
-static void wkt_buf_printf(wkt_buf *b, const char *fmt, ...) {
-    va_list ap; int n;
-    va_start(ap, fmt); n = vsnprintf(NULL, 0, fmt, ap); va_end(ap);
-    if (n < 0) return;
-    wkt_buf_grow(b, (size_t)n + 1);
-    va_start(ap, fmt); vsnprintf(b->str + b->len, (size_t)n + 1, fmt, ap); va_end(ap);
-    b->len += n;
-}
-
-static void wkt_buf_append(wkt_buf *b, const char *s, size_t n) {
-    wkt_buf_grow(b, n + 1);
-    memcpy(b->str + b->len, s, n);
-    b->len += n;
-    b->str[b->len] = '\0';
-}
-
-static uint32_t wkb_r32(const uint8_t **p, int le) {
-    uint32_t v; memcpy(&v, *p, 4); *p += 4;
-    if (!le) v = __builtin_bswap32(v);
-    return v;
-}
-
-static double wkb_r64(const uint8_t **p, int le) {
-    union { double d; uint64_t u; } vu;
-    memcpy(&vu.u, *p, 8); *p += 8;
-    if (!le) vu.u = __builtin_bswap64(vu.u);
-    return vu.d;
-}
-
-static void wkt_write_coords(const uint8_t **p, wkt_buf *b, int le, int has_z, int has_m) {
-    wkt_buf_printf(b, "%.15g %.15g", wkb_r64(p, le), wkb_r64(p, le));
-    if (has_z) wkt_buf_printf(b, " %.15g", wkb_r64(p, le));
-    if (has_m) wkt_buf_printf(b, " %.15g", wkb_r64(p, le));
-}
-
-static void wkb_to_wkt_recursive(const uint8_t **p, wkt_buf *b, int emit_name) {
-    int le = ((*p)[0] == 1);
-    (*p)++;
-    uint32_t raw_type = wkb_r32(p, le);
-    int type = (int)(raw_type % 1000);
-    int dim_flag = (int)(raw_type / 1000);
-    int has_z = (dim_flag == 1 || dim_flag == 3);
-    int has_m = (dim_flag == 2 || dim_flag == 3);
-
-    static const char *names[] = {
-        [WKB_POINT] = "POINT",
-        [WKB_LINESTRING] = "LINESTRING",
-        [WKB_POLYGON] = "POLYGON",
-        [WKB_MULTIPOINT] = "MULTIPOINT",
-        [WKB_MULTILINESTRING] = "MULTILINESTRING",
-        [WKB_MULTIPOLYGON] = "MULTIPOLYGON",
-        [WKB_GEOMETRYCOLLECTION] = "GEOMETRYCOLLECTION"
-    };
-    const char *name = (type >= 1 && type <= 7) ? names[type] : "UNKNOWN";
-
-    if (emit_name) {
-        wkt_buf_printf(b, "%s (", name);
-    }
-
-    switch (type) {
-        case WKB_POINT:
-            wkt_write_coords(p, b, le, has_z, has_m);
-            break;
-
-        case WKB_LINESTRING: {
-            uint32_t n = wkb_r32(p, le);
-            for (uint32_t i = 0; i < n; i++) {
-                if (i) wkt_buf_append(b, ", ", 2);
-                wkt_write_coords(p, b, le, has_z, has_m);
-            }
-            break;
-        }
-
-        case WKB_POLYGON: {
-            uint32_t n = wkb_r32(p, le);
-            for (uint32_t i = 0; i < n; i++) {
-                if (i) wkt_buf_append(b, ", ", 2);
-                wkt_buf_append(b, "(", 1);
-                uint32_t m = wkb_r32(p, le);
-                for (uint32_t j = 0; j < m; j++) {
-                    if (j) wkt_buf_append(b, ", ", 2);
-                    wkt_write_coords(p, b, le, has_z, has_m);
-                }
-                wkt_buf_append(b, ")", 1);
-            }
-            break;
-        }
-
-        case WKB_MULTIPOINT:
-        case WKB_MULTILINESTRING:
-        case WKB_MULTIPOLYGON: {
-            uint32_t n = wkb_r32(p, le);
-            for (uint32_t i = 0; i < n; i++) {
-                if (i) wkt_buf_append(b, ", ", 2);
-                if (type != WKB_MULTIPOINT) wkt_buf_append(b, "(", 1);
-                wkb_to_wkt_recursive(p, b, 0);
-                if (type != WKB_MULTIPOINT) wkt_buf_append(b, ")", 1);
-            }
-            break;
-        }
-
-        case WKB_GEOMETRYCOLLECTION: {
-            uint32_t n = wkb_r32(p, le);
-            for (uint32_t i = 0; i < n; i++) {
-                if (i) wkt_buf_append(b, ", ", 2);
-                wkb_to_wkt_recursive(p, b, 1);
-            }
-            break;
-        }
-
-        default:
-            wkt_buf_append(b, "UNKNOWN", 7);
-            break;
-    }
-
-    if (emit_name) {
-        wkt_buf_append(b, ")", 1);
-    }
-}
-
-static char *wkb_to_wkt(const char *data, size_t len) {
-    if (len < 5) return NULL;
-    const uint8_t *p = (const uint8_t *)data, *end = p + len;
-    wkt_buf b; wkt_buf_init(&b);
-    wkb_to_wkt_recursive(&p, &b, 1);
-    if (p > end) { wkt_buf_free(&b); return NULL; }
-    return b.str;
-}
-
 /* Helper: fetch the next data chunk (handles both streaming and non-streaming) */
 static int fetch_next_chunk(pdo_duckdb_stmt *S)
 {
@@ -858,15 +696,15 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		break;
 	}
 	case DUCKDB_TYPE_GEOMETRY: {
-			duckdb_string_t blob = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
-			const char *data = duckdb_string_t_data(&blob);
-			size_t len = duckdb_string_t_length(blob);
-			char *wkt = wkb_to_wkt(data, len);
-			if (wkt) {
-				ZVAL_STRING(result, wkt);
-				efree(wkt);
+			char *str = duckdb_geometry_get_string(vec, row_idx);
+			if (str == NULL) {
+				ZVAL_NULL(result);
 			} else {
-				ZVAL_STRINGL(result, data, len);
+				size_t str_len = strlen(str);
+				if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
+					ZVAL_STRINGL(result, str, str_len);
+				}
+				duckdb_free(str);
 			}
 			break;
 		}
@@ -913,6 +751,20 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 	uint64_t *validity = duckdb_vector_get_validity(vec);
 	if (col_type == DUCKDB_TYPE_VARIANT) {
 		char *str = duckdb_variant_get_string(vec, row_idx);
+		if (str == NULL) {
+			ZVAL_NULL(result);
+		} else {
+			size_t str_len = strlen(str);
+			if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
+				ZVAL_STRINGL(result, str, str_len);
+			}
+			duckdb_free(str);
+		}
+		duckdb_destroy_logical_type(&logical_type);
+		return 1;
+	}
+	if (col_type == DUCKDB_TYPE_GEOMETRY) {
+		char *str = duckdb_geometry_get_string(vec, row_idx);
 		if (str == NULL) {
 			ZVAL_NULL(result);
 		} else {

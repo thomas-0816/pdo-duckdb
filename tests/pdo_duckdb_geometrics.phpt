@@ -24,36 +24,36 @@ array(7) {
   [0]=>
   array(1) {
     ["geom"]=>
-    string(13) "POINT (10 30)"
+    string(13) "POINT (30 10)"
   }
   [1]=>
   array(1) {
     ["geom"]=>
-    string(32) "LINESTRING (10 30, 30 10, 40 40)"
+    string(32) "LINESTRING (30 10, 10 30, 40 40)"
   }
   [2]=>
   array(1) {
     ["geom"]=>
-    string(45) "POLYGON ((10 30, 40 40, 40 20, 20 10, 10 30))"
+    string(45) "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"
   }
   [3]=>
   array(1) {
     ["geom"]=>
-    string(39) "MULTIPOINT (40 10, 30 40, 20 20, 10 30)"
+    string(39) "MULTIPOINT (10 40, 40 30, 20 20, 30 10)"
   }
   [4]=>
   array(1) {
     ["geom"]=>
-    string(62) "MULTILINESTRING ((10 10, 20 20, 40 10), (40 40, 30 30, 20 40))"
+    string(62) "MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20))"
   }
   [5]=>
   array(1) {
     ["geom"]=>
-    string(81) "MULTIPOLYGON (((20 30, 40 45, 40 10, 20 30)), ((5 15, 10 40, 20 10, 10 5, 5 15)))"
+    string(81) "MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)), ((15 5, 40 10, 10 20, 5 10, 15 5)))"
   }
   [6]=>
   array(1) {
     ["geom"]=>
-    string(108) "GEOMETRYCOLLECTION (POINT (10 40), LINESTRING (10 10, 20 20, 40 10), POLYGON ((40 40, 45 20, 30 45, 40 40)))"
+    string(108) "GEOMETRYCOLLECTION (POINT (40 10), LINESTRING (10 10, 20 20, 10 40), POLYGON ((40 40, 20 45, 45 30, 40 40)))"
   }
 }
