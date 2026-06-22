@@ -41,6 +41,13 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:');
+var_dump($db);
+
+$db = PDO::connect('duckdb::memory:');
+var_dump($db);
+var_dump($db->query("SELECT 'foo'")->fetch(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(4) {
@@ -94,3 +101,11 @@ array(4) {
 bool(true)
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
+object(PDO)#4 (0) {
+}
+object(PDO)#5 (0) {
+}
+array(1) {
+  ["'foo'"]=>
+  string(3) "foo"
+}
