@@ -35,7 +35,7 @@ extern "C" char *duckdb_geometry_get_string(duckdb_vector vec, idx_t row) {
 
 	if (value.IsNull()) return NULL;
 
-	auto str = value.DefaultCastAs(duckdb::LogicalType::JSON()).ToString();
+	auto str = value.DefaultCastAs(duckdb::LogicalType::VARCHAR).ToString();
 
 	auto *result = (char *)duckdb_malloc(str.size() + 1);
 	if (result) {
