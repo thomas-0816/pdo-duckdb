@@ -555,7 +555,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_VARIANT: {
-			char *str = duckdb_variant_get_string(vec, row_idx);
+			char *str = duckdb_get_json_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
 			} else {
@@ -585,59 +585,6 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
 	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
 	duckdb_type col_type = duckdb_get_type_id(logical_type);
-
-	uint64_t *validity = duckdb_vector_get_validity(vec);
-	if (col_type == DUCKDB_TYPE_VARIANT) {
-		char *str = duckdb_variant_get_string(vec, row_idx);
-		if (str == NULL) {
-			ZVAL_NULL(result);
-		} else {
-			size_t str_len = strlen(str);
-			if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-				ZVAL_STRINGL(result, str, str_len);
-			}
-			duckdb_free(str);
-		}
-		duckdb_destroy_logical_type(&logical_type);
-		return 1;
-	}
-	if (col_type == DUCKDB_TYPE_GEOMETRY) {
-		char *str = duckdb_get_string(vec, row_idx);
-		if (str == NULL) {
-			ZVAL_NULL(result);
-		} else {
-			ZVAL_STRING(result, str);
-			duckdb_free(str);
-		}
-		duckdb_destroy_logical_type(&logical_type);
-		return 1;
-	}
-	if (col_type == DUCKDB_TYPE_VARCHAR) {
-		char *alias = duckdb_logical_type_get_alias(logical_type);
-		int is_json = (alias && strcmp(alias, "JSON") == 0);
-		duckdb_free(alias);
-		if (is_json) {
-			if (!duckdb_validity_row_is_valid(validity, row_idx)) {
-				ZVAL_NULL(result);
-				duckdb_destroy_logical_type(&logical_type);
-				return 1;
-			}
-			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
-			const char *str_data = duckdb_string_t_data(&str);
-			size_t str_len = duckdb_string_t_length(str);
-			/* DuckDB strings may not be null-terminated; copy to ensure php_json_decode works */
-			char *json_copy = emalloc(str_len + 1);
-			memcpy(json_copy, str_data, str_len);
-			json_copy[str_len] = '\0';
-			ZVAL_NULL(result);
-			if (php_json_decode_ex(result, json_copy, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-				ZVAL_STRINGL(result, json_copy, str_len);
-			}
-			efree(json_copy);
-			duckdb_destroy_logical_type(&logical_type);
-			return 1;
-		}
-	}
 
 	duckdb_val_from_vector(vec, logical_type, row_idx, result);
 

@@ -1,11 +1,11 @@
 #include "duckdb.hpp"
 #include <cstring>
 
-extern "C" char *duckdb_variant_get_string(duckdb_vector vec, idx_t row) {
+extern "C" char *duckdb_get_json_string(duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
-	auto *variant_vec = reinterpret_cast<duckdb::Vector *>(vec);
-	auto value = variant_vec->GetValue(row);
+	auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
+	auto value = vec_ptr->GetValue(row);
 
 	if (value.IsNull()) return NULL;
 
