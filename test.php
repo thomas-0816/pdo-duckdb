@@ -222,6 +222,8 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE tbl1 (u UNION(num INTEGER, str VARCHAR))");
 $db->exec("INSERT INTO tbl1 VALUES (1), ('two'), (union_value(str := 'three'))");
+$statement = $db->query("SELECT * FROM tbl1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT u, u.str, union_extract(u, 'str') AS str2, union_tag(u) AS t FROM tbl1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
