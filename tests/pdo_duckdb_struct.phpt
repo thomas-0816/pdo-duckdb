@@ -132,6 +132,12 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT {'k1': 1, 'k2': 0} > {'k3': 0, 'k1': 0}");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db->exec("create table t1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], j JSON))");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?)");
+$statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], [1, 2, null, 'asd']]]);
+$statement = $db->query("SELECT * FROM t1");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {

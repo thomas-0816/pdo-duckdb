@@ -741,6 +741,12 @@ $statement->bindValue(1, $s, PDO::PARAM_LOB);
 $statement->execute();
 $statement->execute([json_encode($s)]);
 $statement->execute([json_encode(['foo', 'bar'])]);
-print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC)); // TODO fix should return arrays. not strings
+print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("create table t1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], j JSON))");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?)");
+$statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'j' => [1, 2, null, 'asd']]]);
+$statement = $db->query("SELECT * FROM t1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC)); // TODO fix j json not decoded to array
 
 unset($db);

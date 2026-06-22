@@ -172,6 +172,27 @@ $statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
 $statement->execute(['$bb' => 2, '$aa' => 1, '$cc' => 9223372036854775807, '$ee' => '$hello', '$dd' => 3.141511313212312312]);
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (v VARCHAR[])");
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->execute([['hello', 'world']]);
+var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+$s = new stdClass();
+$s->foo = 'bar';
+$s->hello = 'world';
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (j JSON)");
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->execute([$s]);
+$statement->bindValue(1, ['foo', 'bar'], PDO::PARAM_LOB);
+$statement->execute();
+$statement->bindValue(1, $s, PDO::PARAM_LOB);
+$statement->execute();
+$statement->execute([json_encode($s)]);
+$statement->execute([json_encode(['foo', 'bar'])]);
+var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 string(1) "0"

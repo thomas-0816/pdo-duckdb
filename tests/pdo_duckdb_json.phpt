@@ -72,7 +72,10 @@ array(1) {
   [0]=>
   array(1) {
     ["CAST('{"a":1,"a":2}' AS "JSON")"]=>
-    string(13) "{"a":1,"a":2}"
+    array(1) {
+      ["a"]=>
+      int(2)
+    }
   }
 }
 array(1) {
