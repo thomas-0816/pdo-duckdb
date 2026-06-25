@@ -8,48 +8,58 @@ pdo_duckdb
 $db = new PDO('duckdb::memory:');
 
 $statement = $db->query("SELECT
-null::boolean,
-null::tinyint,
-null::smallint,
-null::integer,
-null::bigint,
-null::utinyint,
-null::usmallint,
-null::uinteger,
-null::ubigint,
-null::float,
-null::double,
-null::timestamp,
-null::date,
-null::time,
-null::interval,
-null::hugeint,
-null::uhugeint,
-null::varchar,
-null::blob,
-null::decimal,
-null::timestamp_s,
-null::timestamp_ms,
-null::timestamp_ns,
-null::enum('a'),
-null::struct(duck integer),
-null::integer[],
-null::integer[1],
-map_from_entries(null),
-null::union(str varchar),
-null::uuid,
-null::bit,
-null::timetz,
-null::timestamptz,
-null::time_ns,
-null::geometry,
-null::variant,
-null::bignum
+  null::boolean, null::tinyint, null::smallint, null::integer, null::bigint, null::utinyint, null::usmallint,
+  null::uinteger, null::ubigint, null::float, null::double, null::timestamp, null::date, null::time, null::interval,
+  null::hugeint, null::uhugeint, null::varchar, null::blob, null::decimal, null::timestamp_s, null::timestamp_ms,
+  null::timestamp_ns, null::enum('a'), null::struct(duck integer), null::integer[], null::integer[1], map_from_entries(null),
+  null::union(str varchar), null::uuid, null::bit, null::timetz, null::timestamptz, null::time_ns, null::geometry,
+  null::variant, null::bignum
 ");
+$columnCount = $statement->columnCount();
+for ($i = 0; $i < $columnCount; $i++) {
+  var_dump($statement->getColumnMeta($i)['native_type']);
+}
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
+string(7) "boolean"
+string(7) "tinyint"
+string(8) "smallint"
+string(7) "integer"
+string(6) "bigint"
+string(8) "utinyint"
+string(9) "usmallint"
+string(8) "uinteger"
+string(7) "ubigint"
+string(5) "float"
+string(6) "double"
+string(9) "timestamp"
+string(4) "date"
+string(4) "time"
+string(8) "interval"
+string(7) "hugeint"
+string(8) "uhugeint"
+string(7) "varchar"
+string(4) "blob"
+string(7) "decimal"
+string(11) "timestamp_s"
+string(12) "timestamp_ms"
+string(12) "timestamp_ns"
+string(4) "enum"
+string(6) "struct"
+string(4) "list"
+string(7) "unknown"
+string(7) "integer"
+string(5) "union"
+string(4) "uuid"
+string(3) "bit"
+string(6) "timetz"
+string(11) "timestamptz"
+string(7) "time_ns"
+string(8) "geometry"
+string(4) "json"
+string(6) "bignum"
 array(1) {
   [0]=>
   array(37) {
