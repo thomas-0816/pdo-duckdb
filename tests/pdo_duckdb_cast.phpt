@@ -155,8 +155,8 @@ array(2) {
 Fatal error: Uncaught PDOException: SQLSTATE[HY000]: Conversion Error: Type INT32 with value 999 can't be cast because the value is out of range for the destination type INT8
 
 LINE 1: SELECT CAST(999 AS TINYINT)
-               ^ in /home/tb/code/pdo-duckdb2/pdo-duckdb/tests/pdo_duckdb_cast.php:25
+               ^ in %s/pdo_duckdb_cast.php:25
 Stack trace:
-#0 /home/tb/code/pdo-duckdb2/pdo-duckdb/tests/pdo_duckdb_cast.php(25): PDO->query('SELECT CAST(999...')
+#0 %s/tests/pdo_duckdb_cast.php(25): PDO->query('SELECT CAST(999...')
 #1 {main}
-  thrown in /home/tb/code/pdo-duckdb2/pdo-duckdb/tests/pdo_duckdb_cast.php on line 25
+  thrown in %s/tests/pdo_duckdb_cast.php on line 25

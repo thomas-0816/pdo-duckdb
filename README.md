@@ -179,8 +179,9 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 
 ### Docker
 
-    docker build -t pdo_duckdb .
-    docker run --rm -it pdo_duckdb php test.php
+    # php 8.5
+    docker build -f php85.Dockerfile -t pdo_duckdb_php85 .
+    docker run --rm -it pdo_duckdb_php85
 
 ### Security
 
