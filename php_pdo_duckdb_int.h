@@ -37,6 +37,9 @@ typedef struct _pdo_duckdb_db_handle {
 	char               error_msg[256];    /* last error message */
 	int                auto_commit;       /* PDO::ATTR_AUTOCOMMIT */
 	int                unbuffered;        /* PDO::DUCKDB_ATTR_UNBUFFERED */
+	int                query_timeout_ms;  /* PDO::ATTR_TIMEOUT in ms (0 = no timeout) */
+	pthread_t          timeout_thread;    /* thread to interrupt query on timeout */
+	volatile int       timeout_running;   /* flag to signal timeout thread to stop */
 } pdo_duckdb_db_handle;
 
 /* Statement data – one per PDOStatement handle */
