@@ -53,6 +53,10 @@ $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT version()");
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
+var_dump($db->getAttribute(PDO::ATTR_CLIENT_VERSION));
+var_dump($db->getAttribute(PDO::ATTR_SERVER_VERSION));
+var_dump($db->getAttribute(PDO::ATTR_DRIVER_NAME));
+
 ?>
 --EXPECTF--
 array(4) {
@@ -119,3 +123,6 @@ array(1) {
   [""version"()"]=>
   string(6) "v1.5.4"
 }
+string(6) "v1.5.4"
+string(6) "v1.5.4"
+string(6) "duckdb"
