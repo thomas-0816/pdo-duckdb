@@ -113,7 +113,7 @@ Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
 object(PDO)#4 (0) {
 }
-object(PDO)#5 (0) {
+object(%s)#5 (0) {
 }
 array(1) {
   ["'foo'"]=>
