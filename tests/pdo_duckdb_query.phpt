@@ -216,6 +216,14 @@ $db->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, true);
 $statement = $db->query("SELECT null as n, 42 as i, 42.21 as d, ['a', 'b']::varchar[] as v, '{\"a\": \"b\"}'::json as j");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE SEQUENCE t1_seq');
+$db->exec("CREATE TABLE t1 (i INTEGER PRIMARY KEY DEFAULT nextval('t1_seq'), v VARCHAR)");
+var_dump($db->query("INSERT INTO t1 (v) VALUES ('a') RETURNING *")->fetchAll(PDO::FETCH_ASSOC));
+var_dump($db->query("INSERT INTO t1 (v) VALUES ('b') RETURNING *")->fetchAll(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT * FROM t1");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -587,5 +595,39 @@ array(1) {
     string(9) "["a","b"]"
     ["j"]=>
     string(9) "{"a":"b"}"
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["i"]=>
+    int(1)
+    ["v"]=>
+    string(1) "a"
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["i"]=>
+    int(2)
+    ["v"]=>
+    string(1) "b"
+  }
+}
+array(2) {
+  [0]=>
+  array(2) {
+    ["i"]=>
+    int(1)
+    ["v"]=>
+    string(1) "a"
+  }
+  [1]=>
+  array(2) {
+    ["i"]=>
+    int(2)
+    ["v"]=>
+    string(1) "b"
   }
 }

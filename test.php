@@ -788,4 +788,13 @@ $db->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, true);
 $statement = $db->query("SELECT null as n, 42 as i, 42.21 as d, ['a', 'b']::varchar[] as v, '{\"a\": \"b\"}'::json as j");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE SEQUENCE t1_seq');
+$db->exec("CREATE TABLE t1 (i INTEGER PRIMARY KEY DEFAULT nextval('t1_seq'), v VARCHAR)");
+print_r($db->query("INSERT INTO t1 (v) VALUES ('a') RETURNING *")->fetchAll(PDO::FETCH_ASSOC));
+print_r($db->query("INSERT INTO t1 (v) VALUES ('b') RETURNING *")->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT * FROM t1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
 unset($db);

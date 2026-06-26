@@ -132,7 +132,7 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     ");
 
 
-### Use nested columns with a fixed schema
+### Use structured columns with a fixed schema
 
     // s is array{v: string, i: int, a: string[], d: float}
 
@@ -160,7 +160,8 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
             )
     )
 
-### Cast nested columns to JSON-string
+
+### Cast array columns to JSON-string
 
     $db = new PDO('duckdb::memory:');
     $db->exec("CREATE TABLE table1 (v VARCHAR[])");
@@ -184,6 +185,38 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     Array
     (
         [v] => ["a","b"]
+    )
+
+
+### Auto increment columns
+
+    $db = new PDO('duckdb::memory:');
+    $db->exec('CREATE SEQUENCE table1_id');
+    $db->exec("CREATE TABLE table1 (id INTEGER PRIMARY KEY DEFAULT nextval('table1_id'))");
+    $statement = $db->query("INSERT INTO table1 VALUES (default) RETURNING *");
+    print_r($statement->fetch(PDO::FETCH_ASSOC));
+
+    Array
+    (
+        [id] => 1
+    )
+
+
+### Differences to MySQL / MariaDB
+
+    $db = new PDO('duckdb::memory:');
+    $statement = $db->query("SELECT
+        0/0, 1/0, -1/0,
+        nullif(0/0, 'NAN'), nullif(1/0, 'INF'), nullif(-1/0, '-INF')");
+    var_export($statement->fetch(PDO::FETCH_NUM));
+
+    array (
+        0 => NAN, // MySQL,MariaDB: null
+        1 => INF, // MySQL,MariaDB: null
+        2 => -INF, // MySQL,MariaDB: null
+        3 => NULL,
+        4 => NULL,
+        5 => NULL,
     )
 
 ### Setup
