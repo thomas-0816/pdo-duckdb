@@ -148,6 +148,11 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 	}
 
 	switch (col_type) {
+		case DUCKDB_TYPE_INVALID:
+		case DUCKDB_TYPE_ANY: {
+			ZVAL_NULL(result);
+			break;
+		}
 		case DUCKDB_TYPE_BOOLEAN: {
 			bool val = ((bool *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_BOOL(result, val);

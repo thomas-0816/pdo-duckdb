@@ -18,6 +18,7 @@ $statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_ex
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
+var_dump(in_array('pdo_duckdb', get_loaded_extensions()));
 
 $db = new PDO('duckdb::memory:');
 try {
@@ -44,9 +45,13 @@ try {
 $db = new PDO('duckdb::memory:');
 var_dump($db);
 
-$db = PDO::connect('duckdb::memory:');
+$db = method_exists(PDO::class, 'connect') ? PDO::connect('duckdb::memory:') : new PDO('duckdb::memory:');
 var_dump($db);
 var_dump($db->query("SELECT 'foo'")->fetch(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT version()");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
@@ -99,6 +104,7 @@ array(4) {
   }
 }
 bool(true)
+bool(true)
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
 object(PDO)#4 (0) {
@@ -108,4 +114,8 @@ object(PDO)#5 (0) {
 array(1) {
   ["'foo'"]=>
   string(3) "foo"
+}
+array(1) {
+  [""version"()"]=>
+  string(6) "v1.5.4"
 }

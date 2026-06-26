@@ -781,7 +781,7 @@ $statement = $db->query("SELECT * FROM t");
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query("SELECT now()");
+$statement = $db->query("SELECT now(), version()");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 unset($db);

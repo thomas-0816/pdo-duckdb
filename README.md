@@ -8,6 +8,7 @@ The build process bundles libduckdb directly into `pdo_duckdb.so`.
 
 This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstrings, Blobs and Boolean.
 
+Supported PHP versions: 8.2 8.3 8.4 8.5
 
 ### Usage examples
 
@@ -177,12 +178,6 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     php -m | grep duckdb
     php test.php
 
-### Docker
-
-    # php 8.5
-    docker build -f php85.Dockerfile -t pdo_duckdb_php85 .
-    docker run --rm -it pdo_duckdb_php85
-
 ### Security
 
     # Disable extension loading
@@ -241,6 +236,9 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
     php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+
+    docker build -f Dockerfile -t pdo_duckdb .
+    docker run --rm -it pdo_duckdb
 
 ### AI Disclosure
 
