@@ -131,13 +131,13 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $count = 0;
 $db = new PDO('duckdb::memory:');
-$db->setAttribute(PDO\Duckdb::DUCKDB_ATTR_UNBUFFERED, false);
-var_dump($db->getAttribute(PDO\Duckdb::DUCKDB_ATTR_UNBUFFERED));
+$db->setAttribute(PDO::DUCKDB_ATTR_UNBUFFERED, false);
+var_dump($db->getAttribute(PDO::DUCKDB_ATTR_UNBUFFERED));
 foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") as $row) {
     $count++;
 }
-$db->setAttribute(PDO\Duckdb::DUCKDB_ATTR_UNBUFFERED, true);
-var_dump($db->getAttribute(PDO\Duckdb::DUCKDB_ATTR_UNBUFFERED));
+$db->setAttribute(PDO::DUCKDB_ATTR_UNBUFFERED, true);
+var_dump($db->getAttribute(PDO::DUCKDB_ATTR_UNBUFFERED));
 foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") as $row) {
     $count++;
 }
