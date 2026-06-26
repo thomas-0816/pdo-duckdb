@@ -39,7 +39,9 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     $db = new PDO('duckdb:/tmp/test.db'); // open database file from disk
 
     // open database file as read-only
-    $db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+    $db = new PDO('duckdb:/tmp/test.db', null, null, [
+        PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']
+    ]);
 
 
 ### Read and write Parquet files
