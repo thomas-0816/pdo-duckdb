@@ -137,7 +137,7 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     // s is array{v: string, i: int, a: string[], d: float}
 
     $db = new PDO('duckdb::memory:');
-    $db->exec("create table table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL))");
+    $db->exec("CREATE TABLE table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL))");
 
     $statement = $db->prepare("INSERT INTO table1 VALUES (?)");
     $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
@@ -158,6 +158,32 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
                     )
                 [d] => 42.21
             )
+    )
+
+### Cast nested columns to JSON-string
+
+    $db = new PDO('duckdb::memory:');
+    $db->exec("CREATE TABLE table1 (v VARCHAR[])");
+    $db->exec("INSERT INTO table1 VALUES (['a', 'b'])");
+
+    $statement = $db->query("SELECT v FROM table1");
+    print_r($statement->fetch(PDO::FETCH_ASSOC));
+
+    Array
+    (
+        [v] => Array
+            (
+                [0] => a
+                [1] => b
+            )
+    )
+
+    $statement = $db->query("SELECT v::json::varchar as v FROM table1");
+    print_r($statement->fetch(PDO::FETCH_ASSOC));
+
+    Array
+    (
+        [v] => ["a","b"]
     )
 
 ### Setup
