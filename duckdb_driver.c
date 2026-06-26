@@ -199,7 +199,7 @@ static void* pdo_duckdb_timeout_thread(void *arg)
 }
 
 /* Start the timeout thread if a query timeout is configured */
-static void pdo_duckdb_start_timeout(pdo_duckdb_db_handle *H)
+void pdo_duckdb_start_timeout(pdo_duckdb_db_handle *H)
 {
 	if (H->query_timeout_ms > 0) {
 		H->timeout_running = 1;
@@ -208,7 +208,7 @@ static void pdo_duckdb_start_timeout(pdo_duckdb_db_handle *H)
 }
 
 /* Stop (cancel) the timeout thread */
-static void pdo_duckdb_stop_timeout(pdo_duckdb_db_handle *H)
+void pdo_duckdb_stop_timeout(pdo_duckdb_db_handle *H)
 {
 	if (H->query_timeout_ms > 0 && H->timeout_running) {
 		H->timeout_running = 0;

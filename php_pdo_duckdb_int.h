@@ -60,4 +60,8 @@ typedef struct _pdo_duckdb_stmt {
 char *duckdb_get_json_string(duckdb_vector vector, idx_t row);
 char *duckdb_get_string(duckdb_vector vec, idx_t row);
 
+/* Timeout helpers (defined in duckdb_driver.c) */
+void pdo_duckdb_start_timeout(pdo_duckdb_db_handle *H);
+void pdo_duckdb_stop_timeout(pdo_duckdb_db_handle *H);
+
 #endif /* PHP_PDO_DUCKDB_INT_H */
