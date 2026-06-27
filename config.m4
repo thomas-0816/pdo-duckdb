@@ -21,9 +21,8 @@ PHP_ADD_MAKEFILE_FRAGMENT
 dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
-    dnl macOS: use -force_load (equivalent to --whole-archive) to link all
-    dnl DuckDB symbols into the extension, avoiding weak-import issues at runtime
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -Wl,-undefined,dynamic_lookup -lc++"
+    dnl macOS: link against libduckdb.dylib (shared library)
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,-force_load,$ext_srcdir/libduckdb.dylib -Wl,-undefined,dynamic_lookup -lc++"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so
