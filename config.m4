@@ -18,12 +18,11 @@ PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c du
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 PHP_ADD_MAKEFILE_FRAGMENT
 
-dnl Link duckdb_static with appropriate linker flags based on platform
+dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
-    dnl macOS: -force_load is equivalent to --whole-archive; override deprecated
-    dnl -undefined suppress from libtool with -undefined dynamic_lookup
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -Wl,-undefined,dynamic_lookup -Wl,-lstdc++"
+    dnl macOS: link against libduckdb.dylib (shared library)
+    PDO_DUCKDB_SHARED_LIBADD="$ext_srcdir/libduckdb.dylib -Wl,-undefined,dynamic_lookup -Wl,-lstdc++"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so
