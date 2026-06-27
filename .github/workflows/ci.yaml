@@ -20,7 +20,7 @@ jobs:
         run: composer validate --strict
 
   linux:
-    name: "Tests Linux"
+    name: "Linux"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -64,7 +64,7 @@ jobs:
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
   macos:
-    name: "Tests MacOS"
+    name: "MacOS"
     runs-on: macos-14
     strategy:
       fail-fast: false
