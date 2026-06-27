@@ -2,10 +2,6 @@
 #include "config.h"
 #endif
 
-#ifdef ZTS
-#include "TSRM.h"
-#endif
-
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"

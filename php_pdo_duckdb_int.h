@@ -4,6 +4,10 @@
 /* Version information */
 #define PHP_PDO_DUCKDB_VERSION "1.0.0"
 
+#ifdef ZTS
+#include "TSRM.h"
+#endif
+
 /* Include the DuckDB C API header */
 #include <duckdb.h>
 
