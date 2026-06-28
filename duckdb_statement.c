@@ -594,10 +594,6 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 	duckdb_result *res = &S->result;
 	idx_t row_idx = S->chunk_idx;
 
-	if (!S->chunk) {
-		return 0;
-	}
-
 	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
 	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
 	duckdb_type col_type = duckdb_get_type_id(logical_type);
