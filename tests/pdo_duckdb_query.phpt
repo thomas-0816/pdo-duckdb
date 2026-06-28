@@ -1,5 +1,5 @@
 --TEST--
-PDO_duckdb: Test connection
+PDO_duckdb: Test query
 --EXTENSIONS--
 pdo_duckdb
 --FILE--
