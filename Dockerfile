@@ -10,7 +10,7 @@ ENV TZ="Europe/Berlin"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates wget unzip git build-essential autoconf libtool pkg-config tzdata
+    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates wget unzip git build-essential autoconf libtool pkg-config tzdata
     echo "deb https://packages.sury.org/php/ trixie main" >/etc/apt/sources.list.d/ondrej-php.list
     curl -s https://packages.sury.org/php/apt.gpg >/etc/apt/trusted.gpg.d/php.gpg
     apt-get -y update
@@ -29,11 +29,11 @@ FROM base
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install php8.2-cli php8.2-dev
+    apt-get -y --no-install-recommends install php8.2-cli php8.2-dev
     unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
-    make -j$(nproc)
+    make
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
@@ -50,11 +50,11 @@ FROM base
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install php8.3-cli php8.3-dev
+    apt-get -y --no-install-recommends install php8.3-cli php8.3-dev
     unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
-    make -j$(nproc)
+    make
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
@@ -71,11 +71,11 @@ FROM base
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install php8.4-cli php8.4-dev
+    apt-get -y --no-install-recommends install php8.4-cli php8.4-dev
     unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
-    make -j$(nproc)
+    make
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
@@ -92,11 +92,11 @@ FROM base
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install php8.5-cli php8.5-dev
+    apt-get -y --no-install-recommends install php8.5-cli php8.5-dev
     unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
-    make -j$(nproc)
+    make
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
