@@ -111,6 +111,7 @@ jobs:
           php-version-list: '8.2, 8.3, 8.4, 8.5'
           arch-list: 'x64'
           ts-list: 'nts, ts'
+          libs: pdo
 
   windows-build:
     name: Build ${{ matrix.php-version }} ${{ matrix.arch }} ${{ matrix.ts }}
