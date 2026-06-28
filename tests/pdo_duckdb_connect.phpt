@@ -16,7 +16,7 @@ while ($row = $statement->fetch()) { var_dump($row); }
 
 $db->exec("INSTAll parquet; LOAD parquet; INSTAll json; LOAD json; INSTALL icu; LOAD icu;");
 
-$statement = $db->query("SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE extension_name != 'autocomplete' and (installed = 1 OR loaded = 1)");
+$statement = $db->query("SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE extension_name not in ('autocomplete', 'core_functions') and (installed = 1 OR loaded = 1)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
@@ -71,17 +71,8 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
-array(4) {
+array(3) {
   [0]=>
-  array(3) {
-    ["extension_name"]=>
-    string(14) "core_functions"
-    ["loaded"]=>
-    bool(false)
-    ["installed"]=>
-    bool(true)
-  }
-  [1]=>
   array(3) {
     ["extension_name"]=>
     string(3) "icu"
@@ -90,7 +81,7 @@ array(4) {
     ["installed"]=>
     bool(true)
   }
-  [2]=>
+  [1]=>
   array(3) {
     ["extension_name"]=>
     string(4) "json"
@@ -99,7 +90,7 @@ array(4) {
     ["installed"]=>
     bool(true)
   }
-  [3]=>
+  [2]=>
   array(3) {
     ["extension_name"]=>
     string(7) "parquet"
@@ -115,7 +106,7 @@ Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
 object(PDO)#4 (0) {
 }
-object(%s)#5 (0) {
+object(PDO)#5 (0) {
 }
 array(1) {
   ["'foo'"]=>
