@@ -100,7 +100,7 @@ jobs:
           ./configure --with-pdo-duckdb
           make
           ls -lisa modules/
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           php -d extension=$(pwd)/modules/pdo_duckdb.so -r '
             echo "PHP OK\n";
             $p = new PDO("duckdb::memory:");
@@ -108,8 +108,10 @@ jobs:
             $p->query("CREATE TABLE t (x INTEGER)");
             $p->query("INSERT INTO t VALUES (42)");
             foreach ($p->query("SELECT * FROM t") as $r) echo "ROW: " . json_encode($r) . "\n";
+            var_dump($db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789'")->fetchColumn());
           '
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+          # php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+          php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
           PHP_EXECUTABLE=$(which php) NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
 #  windows-matrix:
