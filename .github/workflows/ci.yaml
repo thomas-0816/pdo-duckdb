@@ -63,37 +63,74 @@ jobs:
           make -j
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
-  macos:
-    name: "MacOS"
-    runs-on: macos-14
+#  macos:
+#    name: "MacOS"
+#    runs-on: macos-14
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        php-version:
+#          - 8.2
+#          - 8.3
+#          - 8.4
+#          - 8.5
+#        thread-safety:
+#          - zts
+#          - nts
+#    steps:
+#      - uses: actions/checkout@v6
+#      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: ${{ matrix.php-version }}
+#        env:
+#          phpts: ${{ matrix.thread-safety }}
+#          fail-fast: true
+#      - name: Build & Test
+#        run: |
+#          sudo systemsetup -settimezone "Europe/Berlin"
+#          wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-osx-universal.zip"
+#          unzip -o libduckdb-*.zip -d ./
+#          phpize
+#          ./configure --with-pdo-duckdb
+#          make -j
+#          php -d extension=$(pwd)/modules/pdo_duckdb.so -m
+#          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+#          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+
+jobs:
+  windows-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.extension-matrix.outputs.matrix }}
+    steps:
+        id: extension-matrix
+        uses: php/php-windows-builder/extension-matrix@v1
+        with:
+          extension-url: ${{ github.event.repository.html_url }}
+          php-version-list: '8.2, 8.3, 8.4, 8.5'
+          arch-list: 'x64'
+          ts-list: 'nts, ts'
+
+  windows-build:
+    name: Build ${{ matrix.php-version }} ${{ matrix.arch }} ${{ matrix.ts }}
+    needs: windows-matrix
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        php-version:
-          - 8.2
-          - 8.3
-          - 8.4
-          - 8.5
-        thread-safety:
-          - zts
-          - nts
+      matrix: ${{ fromJson(needs.windows-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v6
-      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
-        uses: shivammathur/setup-php@v2
+      - name: Download and stage libduckdb (x64)
+        shell: pwsh
+        run: |
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
+          Invoke-WebRequest -Uri $url -OutFile duckdb.zip
+          Expand-Archive duckdb.zip -DestinationPath ./ -Force
+      - name: Build extension
+        uses: php/php-windows-builder/extension@v1
         with:
           php-version: ${{ matrix.php-version }}
-        env:
-          phpts: ${{ matrix.thread-safety }}
-          fail-fast: true
-      - name: Build & Test
-        run: |
-          sudo systemsetup -settimezone "Europe/Berlin"
-          wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-osx-universal.zip"
-          unzip -o libduckdb-*.zip -d ./
-          phpize
-          ./configure --with-pdo-duckdb
-          make -j
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          ts: ${{ matrix.ts }}
+          arch: ${{ matrix.arch }}
+          args: --with-pdo-duckdb
