@@ -29,7 +29,7 @@ var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
 */
 
 try {
-  new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['invalid' => 1]]);
+  new PDO('duckdb:' . $tmpFile . '3', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['invalid' => 1]]);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
@@ -57,4 +57,4 @@ array(4) {
   string(5) "hello"
 }
 Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
-Caught: SQLSTATE[HY000]: Could not open DuckDB database: Invalid Input Error: The following options were not recognized: invalid
+Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
