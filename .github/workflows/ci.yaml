@@ -56,7 +56,6 @@ jobs:
           esac
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
           unzip -o -q libduckdb.zip -d ./
-          sudo apt-get update -qq && sudo apt-get install -y -qq libatomic-dev
           phpize
           ./configure --with-pdo-duckdb
           make -j
