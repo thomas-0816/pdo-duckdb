@@ -58,7 +58,7 @@ jobs:
           unzip -o -q libduckdb.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
-          make -j
+          make
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
@@ -92,7 +92,7 @@ jobs:
 #          unzip -o libduckdb-*.zip -d ./
 #          phpize
 #          ./configure --with-pdo-duckdb
-#          make -j
+#          make
 #          php -d extension=$(pwd)/modules/pdo_duckdb.so -m
 #          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 #          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
