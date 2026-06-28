@@ -35,8 +35,10 @@ jobs:
             macos-14)         libduckdb=static-libs-osx-arm64.zip ;;
             *) echo "unmapped runner ${{ matrix.os }}"; exit 1 ;;
           esac
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
-          unzip -o -q libduckdb.zip -d ./
+          unzip -o libduckdb.zip -d ./
 
       - name: Build and upload prebuilt binary
         uses: php/pie-ext-binary-builder@0.0.3
