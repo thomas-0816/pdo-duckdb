@@ -27,8 +27,13 @@ $statement = $db->query("FROM (SELECT {'outer1': {'inner1': 42, 'inner2': 42}} A
     order by a.c.outer1.inner2");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT CAST(999 AS TINYINT)");
-var_dump($statement);
+try {
+  $db->query("SELECT CAST(999 AS TINYINT)");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+var_dump($db->query("SELECT CAST(121 AS TINYINT)")->fetchColumn());
 
 ?>
 --EXPECTF--
@@ -151,12 +156,8 @@ array(2) {
     }
   }
 }
-
-Fatal error: Uncaught PDOException: SQLSTATE[HY000]: Conversion Error: Type INT32 with value 999 can't be cast because the value is out of range for the destination type INT8
+Caught: SQLSTATE[HY000]: Conversion Error: Type INT32 with value 999 can't be cast because the value is out of range for the destination type INT8
 
 LINE 1: SELECT CAST(999 AS TINYINT)
-               ^ in %s/pdo_duckdb_cast.php:25
-Stack trace:
-#0 %s/tests/pdo_duckdb_cast.php(25): PDO->query('SELECT CAST(999...')
-#1 {main}
-  thrown in %s/tests/pdo_duckdb_cast.php on line 25
+               ^
+int(121)

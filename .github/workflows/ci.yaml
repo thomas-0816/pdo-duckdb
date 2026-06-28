@@ -120,7 +120,7 @@ jobs:
           ts-list: 'nts, ts'
 
   windows-build:
-    name: Windows ${{ matrix.os }} ${{ matrix.php-version }} ${{ matrix.arch }} ${{ matrix.ts }}
+    name: Windows ${{ matrix.php-version }} ${{ matrix.arch }} ${{ matrix.ts }}
     needs: windows-matrix
     runs-on: ${{ matrix.os }}
     strategy:

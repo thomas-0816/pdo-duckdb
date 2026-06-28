@@ -7,8 +7,12 @@ pdo_duckdb
 
 $db = new PDO('duckdb::memory:');
 
-file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
-file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+$tmpFile = sys_get_temp_dir() . '/test_logs.json';
+$parquetFile = sys_get_temp_dir() . '/test_logs.parquet';
+$parquetFile2 = sys_get_temp_dir() . '/test_logs2.parquet';
+
+file_put_contents($tmpFile, json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
+file_put_contents($tmpFile, json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
 
 // limit threads and memory usage for converting big files, see https://github.com/duckdb/duckdb/issues/16078
 // 100k rows per group
@@ -16,22 +20,22 @@ $db->exec("
     set memory_limit='4GB';
     set threads = 1;
     SET preserve_insertion_order=false;
-    copy (select * from read_ndjson('/tmp/test_logs.json', ignore_errors=true))
-    to '/tmp/test_logs.parquet' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE 100_000)
+    copy (select * from read_ndjson('{$tmpFile}', ignore_errors=true))
+    to '{$parquetFile}' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE 100_000)
 ");
 // 100M bytes per group
 $db->exec("
     set memory_limit='4GB';
     set threads = 1;
     SET preserve_insertion_order=false;
-    copy (select * from read_ndjson('/tmp/test_logs.json', ignore_errors=true))
-    to '/tmp/test_logs2.parquet' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE_BYTES 100_000_000)
+    copy (select * from read_ndjson('{$tmpFile}', ignore_errors=true))
+    to '{$parquetFile2}' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE_BYTES 100_000_000)
 ");
-$statement = $db->query("SELECT * FROM parquet_schema('/tmp/test_logs2.parquet')");
+$statement = $db->query("SELECT * FROM parquet_schema('{$parquetFile2}')");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
-$statement = $db->query("SELECT * FROM parquet_metadata('/tmp/test_logs2.parquet')");
+$statement = $db->query("SELECT * FROM parquet_metadata('{$parquetFile2}')");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
-$statement = $db->query("SELECT * FROM parquet_file_metadata('/tmp/test_logs2.parquet')");
+$statement = $db->query("SELECT * FROM parquet_file_metadata('{$parquetFile2}')");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('threads', 'memory_limit')");
