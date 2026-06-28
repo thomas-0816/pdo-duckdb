@@ -130,9 +130,7 @@ jobs:
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
           Expand-Archive duckdb.zip -DestinationPath . -Force
           Get-ChildItem -Path .
-          tzutil /g
           tzutil /s "W. Europe Standard Time"
-          tzutil /g
       - name: Build extension
         uses: php/php-windows-builder/extension@v1
         with:
@@ -140,3 +138,4 @@ jobs:
           ts: ${{ matrix.ts }}
           arch: ${{ matrix.arch }}
           args: --with-pdo-duckdb
+          test-workers: 1
