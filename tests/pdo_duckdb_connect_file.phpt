@@ -6,15 +6,6 @@ pdo_duckdb
 <?php
 
 $tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
-
-$db = new PDO('duckdb:' . $tmpFile);
-unset($db);
-$db = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
-unset($db);
-$db = new PDO('duckdb:' . $tmpFile);
-unset($db);
-
-$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
 $invalidFile = sys_get_temp_dir() . '/invalid/test.db';
 
 $db = new PDO('duckdb:' . $tmpFile);
@@ -24,7 +15,6 @@ $stmt->execute([1, 'hello']);
 $stmt = $db->query("SELECT * FROM t");
 while ($row = $stmt->fetch()) { var_dump($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { var_dump($row); }
-unset($db);
 
 try {
     $duckDb = new PDO('duckdb:' . $invalidFile);
@@ -32,7 +22,9 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-$db = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+copy($tmpFile, $tmpFile . '2');
+
+$db = new PDO('duckdb:' . $tmpFile . '2', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
 var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
 
