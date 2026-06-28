@@ -10,8 +10,8 @@ $statement = $db->query("SELECT 'Hello' || chr(32) || 'world' AS msg");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT 'Hello'
-    ' '
-    'World' AS greeting");
+' '
+'World' AS greeting");
 var_dump($statement->fetchColumn());
 
 $statement = $db->query("SELECT 'Hello' || ' ' || 'World' AS greeting");
@@ -27,17 +27,13 @@ try {
 $statement = $db->query('SELECT e\'Hello\nworld\' AS msg');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query('SELECT $$Hello
-world$$ AS msg');
+$statement = $db->query('SELECT $$Hello world$$ AS msg');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query('SELECT $$The price is $9.95$$ AS msg');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query('SELECT $tag$ this string can contain newlines,
-\'single quotes\',
-"double quotes",
-and $$dollar quotes$$ $tag$ AS msg');
+$statement = $db->query('SELECT $tag$ this string can contain newlines \'single quotes\', "double quotes", and $$dollar quotes$$ $tag$ AS msg');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
@@ -73,8 +69,7 @@ array(1) {
   [0]=>
   array(1) {
     ["msg"]=>
-    string(11) "Hello
-world"
+    string(11) "Hello world"
   }
 }
 array(1) {
@@ -88,9 +83,6 @@ array(1) {
   [0]=>
   array(1) {
     ["msg"]=>
-    string(91) " this string can contain newlines,
-'single quotes',
-"double quotes",
-and $$dollar quotes$$ "
+    string(90) " this string can contain newlines 'single quotes', "double quotes", and $$dollar quotes$$ "
   }
 }
