@@ -25,9 +25,11 @@ case $host_os in
     PDO_DUCKDB_SHARED_LIBADD="$ext_srcdir/libduckdb.dylib -Wl,-undefined,dynamic_lookup -lc++"
     ;;
   *)
-    dnl Linux/other: use --whole-archive to force all symbols into the .so
-    dnl -latomic needed on arm64 for __aarch64_ldadd* LSE atomic ifunc resolvers
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -latomic"
+    dnl Linux/other: use --whole-archive to force all symbols into the .so.
+    dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
+    dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
+    dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,--as-needed"
     ;;
 esac
 PHP_SUBST(PDO_DUCKDB_SHARED_LIBADD)
