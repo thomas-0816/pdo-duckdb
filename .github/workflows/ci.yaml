@@ -121,7 +121,7 @@ jobs:
           - ts
     steps:
       - uses: actions/checkout@v6
-      - name: Download and stage libduckdb (x64)
+      - name: Download libduckdb
         shell: pwsh
         run: |
           $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
