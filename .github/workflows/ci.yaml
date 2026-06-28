@@ -56,10 +56,12 @@ jobs:
           esac
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
           unzip -o -q libduckdb.zip -d ./
+          sudo apt-get update -qq && sudo apt-get install -y -qq libatomic-dev
           phpize
           ./configure --with-pdo-duckdb
           make -j
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
 #  macos:
 #    name: "MacOS"
