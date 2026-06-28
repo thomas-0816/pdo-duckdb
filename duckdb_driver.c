@@ -137,6 +137,7 @@ static void duckdb_handle_closer(pdo_dbh_t *dbh)
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	if (H) {
 		if (H->conn) {
+			duckdb_interrupt(H->conn);
 			duckdb_disconnect(&H->conn);
 			H->conn = NULL;
 		}

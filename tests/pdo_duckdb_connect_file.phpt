@@ -8,8 +8,11 @@ pdo_duckdb
 $tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
 
 $db = new PDO('duckdb:' . $tmpFile);
+unset($db);
 $db = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+unset($db);
 $db = new PDO('duckdb:' . $tmpFile);
+unset($db);
 
 $tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
 $invalidFile = sys_get_temp_dir() . '/invalid/test.db';
@@ -21,6 +24,7 @@ $stmt->execute([1, 'hello']);
 $stmt = $db->query("SELECT * FROM t");
 while ($row = $stmt->fetch()) { var_dump($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { var_dump($row); }
+unset($db);
 
 try {
     $duckDb = new PDO('duckdb:' . $invalidFile);
