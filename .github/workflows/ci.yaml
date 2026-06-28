@@ -15,6 +15,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
+          coverage: none
           tools: composer
       - name: Validate
         run: composer validate --strict
@@ -48,16 +49,13 @@ jobs:
       - name: Build & Test
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
-          sudo apt-get -y update
-          sudo apt-get -y --no-install-recommends install unzip wget
-
           case "${{ matrix.os }}" in
             ubuntu-24.04)     libduckdb=libduckdb-linux-amd64.zip ;;
             ubuntu-24.04-arm) libduckdb=libduckdb-linux-arm64.zip ;;
             *) echo "error ${{ matrix.os }}"; exit 1 ;;
           esac
-          wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}"
-          unzip -o libduckdb-*.zip -d ./
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
+          unzip -o -q libduckdb.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
           make -j
