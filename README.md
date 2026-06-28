@@ -219,7 +219,29 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
         5 => NULL,
     )
 
-### Setup NTS
+### Install with 🥧 [PIE](https://github.com/php/pie)
+
+    pie install thomas-0816/pdo-duckdb-php
+
+### Security
+
+    # Disable extension loading
+    SET autoload_known_extensions = false;
+    SET autoinstall_known_extensions = false;
+    SET allow_community_extensions = false;
+
+    # Disable external file access, directory white listing
+    SET allowed_directories = ['/tmp'];
+    SET enable_external_access = false;
+
+    # Resource limits
+    SET threads = 4;
+    SET memory_limit = '4GB';
+    SET max_temp_directory_size = '4GB';
+
+    https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview
+
+### Compile NTS
 
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
@@ -242,7 +264,7 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     php -m | grep duckdb
     php test.php
 
-### Setup ZTS
+### Compile ZTS
 
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
@@ -264,24 +286,6 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
 
     php-zts -m | grep duckdb
     php-zts test.php
-
-### Security
-
-    # Disable extension loading
-    SET autoload_known_extensions = false;
-    SET autoinstall_known_extensions = false;
-    SET allow_community_extensions = false;
-
-    # Disable external file access, directory white listing
-    SET allowed_directories = ['/tmp'];
-    SET enable_external_access = false;
-
-    # Resource limits
-    SET threads = 4;
-    SET memory_limit = '4GB';
-    SET max_temp_directory_size = '4GB';
-
-    https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview
 
 ### Why DuckDB?
 

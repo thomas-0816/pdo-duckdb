@@ -6,7 +6,7 @@ on:
 
 jobs:
   linux_macos:
-    name: Release
+    name: Linux, MacOS
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
