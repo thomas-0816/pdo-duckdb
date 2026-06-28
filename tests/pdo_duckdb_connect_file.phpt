@@ -19,7 +19,7 @@ foreach ($db->query("SELECT * FROM t") as $row) { var_dump($row); }
 try {
     $duckDb = new PDO('duckdb:' . $invalidFile);
 } catch (Exception $e) {
-    echo "Caught: " . $e->getMessage() . "\n";
+    echo "Caught: " . trim($e->getMessage()) . "\n";
 }
 
 /* not working with windows
