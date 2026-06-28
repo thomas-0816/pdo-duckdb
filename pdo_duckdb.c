@@ -86,6 +86,8 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RINIT_FUNCTION */
 PHP_RINIT_FUNCTION(pdo_duckdb)
 {
+	ZEND_TSRMLS_CACHE_UPDATE();
+
 	static zend_class_entry *pdo_stmt_ce = NULL;
 
 	if (pdo_stmt_ce == NULL) {
