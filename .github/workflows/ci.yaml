@@ -98,7 +98,6 @@ jobs:
 #          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 #          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
-jobs:
   windows-matrix:
     runs-on: ubuntu-latest
     outputs:
