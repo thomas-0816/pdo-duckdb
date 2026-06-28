@@ -158,8 +158,16 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			ZVAL_BOOL(result, val);
 			break;
 		}
-		case DUCKDB_TYPE_TINYINT:
-		case DUCKDB_TYPE_SMALLINT:
+		case DUCKDB_TYPE_TINYINT: {
+			int8_t val = ((int8_t *)duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long)val);
+			break;
+		}
+		case DUCKDB_TYPE_SMALLINT: {
+			int16_t val = ((int16_t *)duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long)val);
+			break;
+		}
 		case DUCKDB_TYPE_INTEGER: {
 			int32_t val = ((int32_t *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_LONG(result, (zend_long)val);
