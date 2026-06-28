@@ -136,7 +136,7 @@ jobs:
           Expand-Archive duckdb.zip -DestinationPath . -Force
           Get-ChildItem -Path .
           tzutil /g
-          tzutil /s "Europe/Berlin"
+          tzutil /s "W. Europe Standard Time"
           tzutil /g
       - name: Build extension
         uses: php/php-windows-builder/extension@v1
