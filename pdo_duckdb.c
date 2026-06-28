@@ -49,11 +49,14 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 	}
 
 	if (params && Z_TYPE_P(params) == IS_ARRAY) {
+		zval new_params;
+		ZVAL_ARR(&new_params, zend_array_dup(Z_ARRVAL_P(params)));
+
 		zval *entry;
 		zend_string *key;
 		zend_ulong num_key;
 
-		ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(params), num_key, key, entry) {
+		ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL(new_params), num_key, key, entry) {
 			if (Z_TYPE_P(entry) == IS_ARRAY || Z_TYPE_P(entry) == IS_OBJECT) {
 				smart_str buf = {0};
 				if (php_json_encode(&buf, entry, 0) == SUCCESS && buf.s) {
@@ -64,6 +67,11 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 				}
 			}
 		} ZEND_HASH_FOREACH_END();
+
+		zval *arg = ZEND_CALL_ARG(execute_data, 1);
+		zval_ptr_dtor(arg);
+		ZVAL_COPY(arg, &new_params);
+		zval_dtor(&new_params);
 	}
 
 	original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);

@@ -594,6 +594,10 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 	duckdb_result *res = &S->result;
 	idx_t row_idx = S->chunk_idx;
 
+	if (!S->chunk) {
+		return 0;
+	}
+
 	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
 	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
 	duckdb_type col_type = duckdb_get_type_id(logical_type);
@@ -844,8 +848,25 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 	return 1;
 }
 
-/* ---------------- cursor closer (free result & prepared statement) ---------------- */
+/* ---------------- cursor closer (free result & chunk, keep prepared statement) ---------------- */
 static int duckdb_stmt_cursor_closer(pdo_stmt_t *stmt)
+{
+	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
+	if (S) {
+		if (S->chunk) {
+			duckdb_destroy_data_chunk(&S->chunk);
+			S->chunk = NULL;
+		}
+		if (S->result_set) {
+			duckdb_destroy_result(&S->result);
+			S->result_set = 0;
+		}
+	}
+	return 1;
+}
+
+/* ---------------- statement destructor (free everything) ---------------- */
+static int duckdb_stmt_dtor(pdo_stmt_t *stmt)
 {
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 	if (S) {
@@ -869,7 +890,7 @@ static int duckdb_stmt_cursor_closer(pdo_stmt_t *stmt)
 
 /* ---------------- statement method table ---------------- */
 struct pdo_stmt_methods duckdb_stmt_methods = {
-	duckdb_stmt_cursor_closer,    /* dtor */
+	duckdb_stmt_dtor,             /* dtor */
 	duckdb_stmt_execute,          /* executer */
 	duckdb_stmt_fetch,            /* fetcher */
 	duckdb_stmt_describe_col,     /* describer */
