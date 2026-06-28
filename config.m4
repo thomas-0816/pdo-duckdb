@@ -26,7 +26,7 @@ case $host_os in
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -lc"
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc"
     ;;
 esac
 PHP_SUBST(PDO_DUCKDB_SHARED_LIBADD)
