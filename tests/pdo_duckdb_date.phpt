@@ -5,7 +5,7 @@ pdo_duckdb
 --FILE--
 <?php
 
-$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin', 'extension_directory' => getcwd()]]);
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
 
 $statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -21,6 +21,8 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT TIMESTAMP_NS '1992-09-20 11:30:00.123456789', TIMESTAMP_MS '1992-09-20 11:30:00.123456789', TIMESTAMP_S '1992-09-20 11:30:00.123456789'");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("SET timezone = 'Europe/Berlin'");
 
 $statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789', TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00', timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
