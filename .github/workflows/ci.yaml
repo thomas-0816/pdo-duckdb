@@ -92,6 +92,7 @@ jobs:
         run: |
           sudo systemsetup -settimezone "Europe/Berlin"
           sudo systemsetup -gettimezone
+          php -v
           date
           wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-osx-universal.zip"
           unzip -o libduckdb-*.zip -d ./
