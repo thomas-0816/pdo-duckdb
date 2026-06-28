@@ -31,14 +31,6 @@ enum {
 	PDO_DUCKDB_ATTR_CONFIG
 };
 
-/* Platform thread handle type */
-#ifdef _WIN32
-typedef HANDLE pdo_duckdb_thread_t;
-#else
-#include <pthread.h>
-typedef pthread_t pdo_duckdb_thread_t;
-#endif
-
 /* Connection data – one per PDO handle */
 typedef struct _pdo_duckdb_db_handle {
 	duckdb_database    db;                /* main database object */
@@ -47,9 +39,6 @@ typedef struct _pdo_duckdb_db_handle {
 	char               error_msg[256];    /* last error message */
 	int                auto_commit;       /* PDO::ATTR_AUTOCOMMIT */
 	int                unbuffered;        /* PDO::DUCKDB_ATTR_UNBUFFERED */
-	int                query_timeout_ms;  /* PDO::ATTR_TIMEOUT in ms (0 = no timeout) */
-	pdo_duckdb_thread_t timeout_thread;   /* thread handle (HANDLE on Win32, pthread_t on POSIX) */
-	volatile int       timeout_running;   /* flag to signal timeout thread to stop */
 } pdo_duckdb_db_handle;
 
 /* Statement data – one per PDOStatement handle */
@@ -69,9 +58,5 @@ typedef struct _pdo_duckdb_stmt {
 /* Helpers implemented in duckdb_stubs.cpp */
 char *duckdb_get_json_string(duckdb_vector vector, idx_t row);
 char *duckdb_get_string(duckdb_vector vec, idx_t row);
-
-/* Timeout helpers (defined in duckdb_driver.c) */
-void pdo_duckdb_start_timeout(pdo_duckdb_db_handle *H);
-void pdo_duckdb_stop_timeout(pdo_duckdb_db_handle *H);
 
 #endif /* PHP_PDO_DUCKDB_INT_H */

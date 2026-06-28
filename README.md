@@ -229,7 +229,7 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
 
     phpize
     ./configure --with-pdo-duckdb
-    make -j$(nproc)
+    make
     NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
     sudo make install
