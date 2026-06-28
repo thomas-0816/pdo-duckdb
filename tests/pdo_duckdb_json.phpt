@@ -105,4 +105,4 @@ array(1) {
     string(10) "2023-05-12"
   }
 }
-Caught: SQLSTATE[HY000]: {"exception_type":"Catalog","exception_message":"Table with name bar does not exist!\nDid you mean \"pg_attrdef\"?","candidates":"pg_attrdef","position":"43","error_subtype":"MISSING_ENTRY","type":"Table","name":"bar"}
+Caught: SQLSTATE[HY000]: {"exception_type":"Catalog","exception_message":"Table with name bar does not exist!\nDid you mean %s}
