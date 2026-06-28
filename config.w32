@@ -1,5 +1,5 @@
 // config.w32 for PDO_DuckDB extension
-// Usage: configure --with-pdo-duckdb=DIR
+// Usage: configure --with-pdo-duckdb
 
 ARG_WITH("pdo-duckdb", "DuckDB support for PDO", "no");
 
