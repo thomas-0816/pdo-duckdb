@@ -23,7 +23,7 @@ case $host_os in
   darwin*)
     dnl macOS: link against libduckdb.dylib (shared library).
     dnl -L must precede -l on the command line so the linker finds the
-    dylib.  PHP_ADD_LIBPATH / PHP_ADD_LIBRARY_WITH_PATH would emit
+    dnl dylib.  PHP_ADD_LIBPATH / PHP_ADD_LIBRARY_WITH_PATH would emit
     dnl -l before -L on darwin, so craft the flags inline.
     dnl Add rpath so dyld can find the dylib at runtime via @loader_path
     dnl (when the dylib sits next to the .so) or via the build directory.
