@@ -90,16 +90,71 @@ jobs:
           fail-fast: true
       - name: Build & Test
         run: |
-          sudo systemsetup -settimezone "Europe/Berlin"
+          sudo systemsetup -settimezone "Europe/Berlin" 2>/dev/null || true
           wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-osx-universal.zip"
           unzip -o libduckdb-*.zip -d ./
+          echo "=== Files after unzip ==="
+          ls -la libduckdb.* duckdb*.h* 2>/dev/null || true
+          echo "=== dylib install name ==="
+          otool -D libduckdb.dylib
+          echo "=== dylib linkage ==="
+          otool -L libduckdb.dylib
+          echo "=== dylib arch ==="
+          lipo -info libduckdb.dylib
           phpize
           ./configure --with-pdo-duckdb
-          make
+          make V=1 2>&1 | tail -80
+          echo "=== Build output ==="
+          ls -la modules/
+          echo "=== module linkage ==="
+          otool -L modules/pdo_duckdb.so
+          echo "=== rpath entries ==="
+          otool -l modules/pdo_duckdb.so 2>/dev/null | grep -A2 LC_RPATH || echo "NO RPATH ENTRIES"
+          install_name_tool -add_rpath @loader_path/ modules/pdo_duckdb.so 2>&1 || echo "install_name_tool -add_rpath failed (maybe already exists)"
+          echo "=== rpath after fix ==="
+          otool -l modules/pdo_duckdb.so 2>/dev/null | grep -A2 LC_RPATH || echo "NO RPATH ENTRIES"
           cp libduckdb.dylib modules/
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          echo "=== undefined external symbols in .so ==="
+          nm -gu modules/pdo_duckdb.so 2>/dev/null | head -80
+          echo "=== exported symbols in dylib (grep key C++ methods) ==="
+          nm -gP libduckdb.dylib 2>/dev/null | grep -iE "GetValue|DefaultCastAs|IsNull|ToString" | head -30
+          echo "=== TEST: load module only ==="
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m 2>&1 || true
+          echo "=== TEST: basic PHP ==="
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -r 'echo "PHP OK\n";' 2>&1 || true
+          echo "=== TEST: with DYLD_LIBRARY_PATH ==="
+          echo "=== TEST: PDO memory connect (with DYLD_LIBRARY_PATH) ==="
+          DYLD_LIBRARY_PATH=$(pwd)/modules php -d extension=$(pwd)/modules/pdo_duckdb.so -r '
+            echo "PHP loaded\n";
+            try {
+              $p = new PDO("duckdb::memory:");
+              echo "PDO OK\n";
+              $p->query("CREATE TABLE t (x INTEGER)");
+              echo "CREATE OK\n";
+              $p->query("INSERT INTO t VALUES (42)");
+              echo "INSERT OK\n";
+              $r = $p->query("SELECT * FROM t");
+              if ($r) { foreach ($r as $row) { echo "ROW: " . json_encode($row) . "\n"; } }
+            } catch (Exception $e) {
+              echo "ERROR: " . $e->getMessage() . "\n";
+            }
+          ' 2>&1 || true
+          echo "=== TEST: same without DYLD_LIBRARY_PATH ==="
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -r '
+            echo "PHP loaded\n";
+            try {
+              $p = new PDO("duckdb::memory:");
+              echo "PDO OK\n";
+            } catch (Exception $e) {
+              echo "ERROR: " . $e->getMessage() . "\n";
+            }
+          ' 2>&1 || true
+          echo "=== TEST: with dyld verbose logging ==="
+          DYLD_PRINT_LIBRARIES=1 DYLD_PRINT_APIS=1 DYLD_LIBRARY_PATH=$(pwd)/modules php -d extension=$(pwd)/modules/pdo_duckdb.so -r 'echo "PHP OK\n";' 2>&1 | tail -50 || true
+          echo "=== TEST: run test.php ==="
+          DYLD_LIBRARY_PATH=$(pwd)/modules php -d extension=$(pwd)/modules/pdo_duckdb.so test.php 2>&1 || true
+          echo "=== make test ==="
+          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test 2>&1 || true
 
 #  windows-matrix:
 #    runs-on: ubuntu-latest
