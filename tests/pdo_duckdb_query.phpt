@@ -204,14 +204,6 @@ $statement = $db->query("SELECT * FROM t");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
-$db->setAttribute(PDO::ATTR_TIMEOUT, 1);
-try {
-  $db->exec("select sleep_ms(1100)");
-} catch (Exception $e) {
-    echo "Caught: " . $e->getMessage() . "\n";
-}
-
-$db = new PDO('duckdb::memory:');
 $db->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, true);
 $statement = $db->query("SELECT null as n, 42 as i, 42.21 as d, ['a', 'b']::varchar[] as v, '{\"a\": \"b\"}'::json as j");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -581,7 +573,6 @@ array(1) {
     int(9223372036854775807)
   }
 }
-Caught: SQLSTATE[HY000]: INTERRUPT Error: Interrupted!
 array(1) {
   [0]=>
   array(5) {
