@@ -47,7 +47,7 @@ array(3) {
   [0]=>
   array(13) {
     ["file_name"]=>
-    string(23) "/tmp/test_logs2.parquet"
+    string(23) "%s/test_logs2.parquet"
     ["name"]=>
     string(13) "duckdb_schema"
     ["type"]=>
@@ -76,7 +76,7 @@ array(3) {
   [1]=>
   array(13) {
     ["file_name"]=>
-    string(23) "/tmp/test_logs2.parquet"
+    string(23) "%s/test_logs2.parquet"
     ["name"]=>
     string(4) "date"
     ["type"]=>
@@ -105,7 +105,7 @@ array(3) {
   [2]=>
   array(13) {
     ["file_name"]=>
-    string(23) "/tmp/test_logs2.parquet"
+    string(23) "%s/test_logs2.parquet"
     ["name"]=>
     string(3) "log"
     ["type"]=>
@@ -136,7 +136,7 @@ array(2) {
   [0]=>
   array(31) {
     ["file_name"]=>
-    string(23) "/tmp/test_logs2.parquet"
+    string(23) "%s/test_logs2.parquet"
     ["row_group_id"]=>
     int(0)
     ["row_group_num_rows"]=>
@@ -202,7 +202,7 @@ array(2) {
   [1]=>
   array(31) {
     ["file_name"]=>
-    string(23) "/tmp/test_logs2.parquet"
+    string(23) "%s/test_logs2.parquet"
     ["row_group_id"]=>
     int(0)
     ["row_group_num_rows"]=>
@@ -270,7 +270,7 @@ array(1) {
   [0]=>
   array(10) {
     ["file_name"]=>
-    string(23) "/tmp/test_logs2.parquet"
+    string(23) "%s/test_logs2.parquet"
     ["created_by"]=>
     string(40) "DuckDB version v1.5.4 (build 08e34c447b)"
     ["num_rows"]=>
