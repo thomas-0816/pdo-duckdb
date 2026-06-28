@@ -373,7 +373,11 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				}
 				struct tm tm;
 				localtime_r(&secs, &tm);
+#ifdef _WIN32
+				int offs = (int)(_mkgmtime(&tm) - secs);
+#else
 				int offs = (int)tm.tm_gmtoff;
+#endif
 				char sign = offs >= 0 ? '+' : '-';
 				if (offs < 0) offs = -offs;
 				int offs_hours = offs / 3600;
