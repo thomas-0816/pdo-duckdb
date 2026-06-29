@@ -11,15 +11,16 @@ jobs:
     name: "Validate using Composer"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
           coverage: none
           tools: composer
       - name: Validate
         run: composer validate --strict
-
   linux:
     name: "Linux"
     runs-on: ${{ matrix.os }}
@@ -38,9 +39,11 @@ jobs:
           - zts
           - nts
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
       - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
@@ -82,9 +85,11 @@ jobs:
           - zts
           - nts
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
       - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
@@ -120,7 +125,9 @@ jobs:
           - nts
           - ts
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
       - name: Download libduckdb
         shell: pwsh
         run: |
@@ -130,7 +137,7 @@ jobs:
           Get-ChildItem -Path .
           tzutil /s "W. Europe Standard Time"
       - name: Build extension
-        uses: php/php-windows-builder/extension@v1
+        uses: php/php-windows-builder/extension@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}
