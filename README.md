@@ -221,7 +221,7 @@ Supported operating systems: Ubuntu 24.04/26.04 (amd64, arm64), Windows Server 2
         5 => NULL,
     )
 
-### Install with 🥧 [PIE](https://github.com/php/pie)
+### Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
     pie install thomas-0816/pdo-duckdb-php
 
