@@ -23,6 +23,53 @@ jobs:
           - ubuntu-26.04-arm
           - macos-14
           - macos-26
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
+          - 8.5
+        thread-safety:
+          - zts
+          - nts
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: pie
+        env:
+          phpts: ${{ matrix.thread-safety }}
+      - name: Install and test the extension
+        shell: bash
+        env:
+          os: ${{ matrix.os }}
+        run: |
+          uname -a
+          php -v
+          sudo pie install thomas-0816/pdo-duckdb-php
+          php -m | grep duckdb
+          php <<'EOF'
+              <?php
+              if (!extension_loaded("pdo_duckdb")) throw new Exception('Error loading');
+              $db = new PDO("duckdb::memory:");
+              $db->exec("CREATE TABLE t(i INTEGER, s VARCHAR)");
+              $db->exec("INSERT INTO t VALUES (1, 'foo'), (2, 'bar')");
+              $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
+              if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
+          EOF
+          echo 'OK'
+
+  windows:
+    name: Windows
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
           - windows-2022
           - windows-2025
         php-version:
@@ -52,7 +99,7 @@ jobs:
         run: |
           uname -a
           php -v
-          sudo pie install thomas-0816/pdo-duckdb-php
+          pie install thomas-0816/pdo-duckdb-php
           php -m | grep duckdb
           php <<'EOF'
               <?php
