@@ -283,7 +283,7 @@ static void duckdb_fetch_error(pdo_dbh_t *dbh, pdo_stmt_t *stmt, zval *info)
 		add_next_index_null(info);
 		add_next_index_string(info, "no error");
 	} else {
-		add_next_index_string(info, dbh->error_code ? dbh->error_code : "HY000");
+		add_next_index_string(info, dbh->error_code[0] ? dbh->error_code : "HY000");
 		add_next_index_null(info);
 		add_next_index_string(info, H->error_msg);
 	}
