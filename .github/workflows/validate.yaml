@@ -1,4 +1,4 @@
-name: Release binaries
+name: Validate release
 
 on:
   workflow_dispatch:
@@ -47,7 +47,7 @@ jobs:
         run: |
           uname -a
           php -v
-          pie install thomas-0816/pdo-duckdb-php
+          sudo pie install thomas-0816/pdo-duckdb-php
           php -m | grep duckdb
           php <<'EOF'
               <?php
