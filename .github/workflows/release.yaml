@@ -68,6 +68,8 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-2022
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
