@@ -232,6 +232,7 @@ jobs:
       - name: Build & Test
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
+          sudo apt-get update && sudo apt-get install -y valgrind
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
@@ -241,3 +242,13 @@ jobs:
           make
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m" make test
+
+  zizmor:
+    name: Run zizmor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
