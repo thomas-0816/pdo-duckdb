@@ -275,7 +275,7 @@ jobs:
           unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           cd ../../
           ./buildconf --force
-          ./configure --disable-zts --disable-all --enable-cli --enable-pdo --with-pdo-duckdb
+          ./configure --disable-zts --disable-all --enable-cli --enable-pcntl --enable-pdo --with-pdo-duckdb
           make -j$(nproc)
           sapi/cli/php -m | grep duckdb
           sapi/cli/php <<'EOF'
