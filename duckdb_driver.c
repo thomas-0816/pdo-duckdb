@@ -5,8 +5,8 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
-#include "pdo/php_pdo.h"
-#include "pdo/php_pdo_driver.h"
+#include "ext/pdo/php_pdo.h"
+#include "ext/pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
 
@@ -277,6 +277,7 @@ static zend_string* duckdb_handle_last_id(pdo_dbh_t *dbh, const zend_string *nam
 /* ---------------- fetch error information ---------------- */
 static void duckdb_fetch_error(pdo_dbh_t *dbh, pdo_stmt_t *stmt, zval *info)
 {
+	(void)stmt;
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	if (H == NULL || H->error_msg[0] == '\0') {
 		add_next_index_string(info, "00000");
@@ -361,7 +362,8 @@ struct pdo_dbh_methods duckdb_methods = {
 	duckdb_get_attribute,        /* get_attribute */
 	duckdb_check_liveness,       /* check_liveness */
 	NULL,                         /* get_driver_methods */
-	NULL,                         /* persistent_shutdown */
-	NULL,                         /* in_transaction */
-	NULL                         /* get_gc */
+	NULL,                           /* persistent_shutdown */
+	NULL,                           /* in_transaction */
+	NULL,                           /* get_gc */
+	NULL                            /* scanner */
 };
