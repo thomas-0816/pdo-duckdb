@@ -5,8 +5,8 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
-#include "pdo/php_pdo.h"
-#include "pdo/php_pdo_driver.h"
+#include "ext/pdo/php_pdo.h"
+#include "ext/pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
 #include <math.h>
@@ -598,13 +598,13 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 /* ---------------- get column data (called by PDO after fetch) ---------------- */
 static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pdo_param_type *type)
 {
+	(void)type;
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 	duckdb_result *res = &S->result;
 	idx_t row_idx = S->chunk_idx;
 
 	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
 	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
-	duckdb_type col_type = duckdb_get_type_id(logical_type);
 
 	duckdb_val_from_vector(vec, logical_type, row_idx, result);
 
@@ -631,6 +631,7 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 /* ---------------- statement fetch (single row) ---------------- */
 static int duckdb_stmt_fetch(pdo_stmt_t *stmt, enum pdo_fetch_orientation ori, zend_long offset)
 {
+	(void)ori; (void)offset;
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 
 	if (!S->result_set || S->done) {
@@ -656,7 +657,6 @@ static int duckdb_stmt_describe_col(pdo_stmt_t *stmt, int colno)
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 	duckdb_result *res = &S->result;
 	const char *name = duckdb_column_name(res, colno);
-	duckdb_type type = duckdb_column_type(res, colno);
 
 	/* Allocate and set column name */
 	if (stmt->columns[colno].name == NULL) {
