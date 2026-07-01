@@ -35,6 +35,7 @@ RUN <<EOF
         $db->exec("INSERT INTO t VALUES (1, 'foo'), (2, 'bar')");
         $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
         if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
+        echo 'ok', PHP_EOL;
 EOP
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
