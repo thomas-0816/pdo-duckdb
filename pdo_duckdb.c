@@ -129,6 +129,7 @@ PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 /* {{{ PHP_MINFO_FUNCTION */
 PHP_MINFO_FUNCTION(pdo_duckdb)
 {
+	(void)zend_module;
 	php_info_print_table_start();
 	php_info_print_table_header(2, "PDO Driver for DuckDB", "enabled");
 	php_info_print_table_row(2, "DuckDB Library Version", duckdb_library_version());

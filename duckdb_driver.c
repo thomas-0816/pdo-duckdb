@@ -154,6 +154,7 @@ static void duckdb_handle_closer(pdo_dbh_t *dbh)
 static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
                                   pdo_stmt_t *stmt, zval *driver_options)
 {
+	(void)driver_options;
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	pdo_duckdb_stmt *S;
 
@@ -210,6 +211,7 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 /* ---------------- quoter ---------------- */
 static zend_string* duckdb_handle_quoter(pdo_dbh_t *dbh, const zend_string *unquoted, enum pdo_param_type param_type)
 {
+	(void)dbh; (void)param_type;
 	zend_string *q = zend_string_alloc(ZSTR_LEN(unquoted) * 2 + 3, 0);
 	char *p = ZSTR_VAL(q);
 	size_t i, j = 1;
@@ -269,6 +271,7 @@ static bool duckdb_handle_rollback(pdo_dbh_t *dbh)
 /* ---------------- last insert id ---------------- */
 static zend_string* duckdb_handle_last_id(pdo_dbh_t *dbh, const zend_string *name)
 {
+	(void)dbh; (void)name;
 	/* DuckDB doesn't maintain a global last rowid; we can use sequences
 	   if the user creates them. This is a placeholder. */
 	return zend_string_init("0", 1, 0);
