@@ -1,0 +1,27 @@
+# docker build --no-cache -f Dockerfile.wolfi -t pdo_duckdb_wolfi .
+# docker run --rm -it pdo_duckdb_wolfi
+
+FROM chainguard/wolfi-base:latest
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache wget curl unzip php-8.5 php-8.5-pdo php-8.5-phar php-8.5-iconv php-8.5-openssl php-8.5-mbstring libstdc++
+    curl -fsSL -o /tmp/pie.phar https://github.com/php/pie/releases/latest/download/pie.phar
+    chmod +x /tmp/pie.phar
+    /tmp/pie.phar install --no-build-tools-check thomas-0816/pdo-duckdb-php
+    php -m | grep duckdb
+    php <<'EOP'
+        <?php
+        if (!extension_loaded("pdo_duckdb")) throw new Exception('Error loading');
+        $db = new PDO("duckdb::memory:");
+        $db->exec("CREATE TABLE t(i INTEGER, s VARCHAR)");
+        $db->exec("INSERT INTO t VALUES (1, 'foo'), (2, 'bar')");
+        $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
+        if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
+        echo 'ok', PHP_EOL;
+EOP
+EOF
