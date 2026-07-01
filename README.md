@@ -336,7 +336,7 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
     docker build --no-cache -f Dockerfile -t pdo_duckdb .
     docker run --rm -it pdo_duckdb
 
-    make EXTRA_CFLAGS="-Wall -Wextra -Werror" EXTRA_CXXFLAGS="-Wall -Wextra -Werror"
+    make EXTRA_CFLAGS="-Wall -Wextra" EXTRA_CXXFLAGS="-Wall -Wextra -Werror"
 
 ### AI Disclosure
 
